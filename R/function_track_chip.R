@@ -15,11 +15,12 @@
 #'
 #' @return
 #' @export
+#' @import seqsetvis
 #'
 #' @examples
 track_chip = function(signal_files,
                       query_gr,
-                      fetch_fun = ssvFetchBam,
+                      fetch_fun = seqsetvis::ssvFetchBam,
                       win_FUN = c("mean", "max")[2],
                       sum_FUN = NULL,
                       flip_x = NULL,
@@ -27,8 +28,14 @@ track_chip = function(signal_files,
                       nspline = 10,
                       show_lines = FALSE,
                       show_fill = TRUE,
+                      fill_outline_color = NA,
                       y_label = "signal",
                       x_scale = "kbp",
+                      floor_value = 0,
+                      ceiling_value = Inf,
+                      mark_colors = NULL,
+                      legend.position = "right",
+                      names_on_right = TRUE,
                       ...){
   stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
 
@@ -42,7 +49,21 @@ track_chip = function(signal_files,
                       mean = weighted.mean
     )
   }
-  bw_dt.raw = fetch_fun(signal_files, resize(query_gr, 1.2*width(query_gr), fix = "center"),
+
+  fetch_gr = resize(query_gr, 1.2*width(query_gr), fix = "center")
+
+  if(nwin > width(fetch_gr)){
+    nwin = width(fetch_gr)
+  }
+
+  if(!is.data.frame(signal_files)){
+    signal_files = data.frame(
+      file = signal_files,
+      sample = basename(signal_files)
+    )
+  }
+
+  bw_dt.raw = fetch_fun(signal_files, fetch_gr,
                         win_method = "summary",  win_size = nwin,
                         summary_FUN = sum_FUN,
                         return_data.table = TRUE,
@@ -69,28 +90,38 @@ track_chip = function(signal_files,
 
   if(nspline > 1){
     bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = c("sample", "id"))
-    if(flip_x){
-      bw_dt[, x := max(end) - (max(end) - min(start))*x]
-    }else{
-      bw_dt[, x := min(start) + (max(end) - min(start))*x]
-    }
+  }
+  if(flip_x){
+    bw_dt[, x := max(end) - (max(end) - min(start))*x]
+  }else{
+    bw_dt[, x := min(start) + (max(end) - min(start))*x]
   }
 
-  mark_colors = safeBrew(bw_dt$mark)
-  mark_colors["input"] = "gray"
+  if(is.null(mark_colors)){
+    mark_colors = seqsetvis::safeBrew(bw_dt$mark)
+    if(!is.null(mark_colors["input"])){
+      mark_colors["input"] = "gray"
+    }
+  }
+  stopifnot(all(bw_dt$mark %in% names(mark_colors)))
+
+
+  bw_dt[y > ceiling_value, y := ceiling_value]
+  bw_dt[y < floor_value, y := floor_value]
 
   p_chip = ggplot(bw_dt)
   if(show_lines){
-    p_chip = p_chip + geom_path(aes_string(x = "x", y = "y", color = "mark"))
+    p_chip = p_chip +
+      geom_path(aes_string(x = "x", y = "y", color = "mark")) +
+      scale_color_manual(values = mark_colors)
   }
   if(show_fill){
-    p_chip = p_chip + geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = "mark")) +
+    p_chip = p_chip +
+      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = "mark"), color = fill_outline_color) +
       scale_fill_manual(values = mark_colors)
   }
-
   if(flip_x){
     rng = rev(rng)
-
   }
 
   x_label_FUN = switch (
@@ -106,13 +137,19 @@ track_chip = function(signal_files,
     }
   )
 
+  facet_switch = if(names_on_right){
+    NULL
+  }else{
+    "y"
+  }
+
   p_chip = p_chip +
-    guides(color = "none", fill = "none") +
     labs(x = x_scale, y = y_label) +
-    facet_grid(formula("sample~.")) +
+    facet_grid(formula("sample~."), switch = facet_switch) +
     theme_classic() +
     theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
     scale_x_continuous(labels = x_label_FUN) +
-    coord_cartesian(xlim = rng, expand = TRUE)
+    coord_cartesian(xlim = rng, expand = TRUE) +
+    theme(legend.position = legend.position)
   p_chip
 }

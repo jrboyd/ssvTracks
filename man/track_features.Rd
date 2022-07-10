@@ -5,8 +5,8 @@
 \title{track_features}
 \usage{
 track_features(
-  grs,
-  qgr,
+  feature_grs,
+  query_gr,
   attrib = "cluster_id",
   pad = 0.1,
   flip_x = NULL,

@@ -6,7 +6,7 @@
 \usage{
 track_ref(
   ref = "~/gencode.v28.annotation.gtf.gz",
-  qgr,
+  query_gr,
   flip_x = FALSE,
   exon_height = 0.4,
   intron_thickness = 2,

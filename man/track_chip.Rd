@@ -5,9 +5,9 @@
 \title{track_chip}
 \usage{
 track_chip(
-  bw_files,
-  qgr,
-  fetch_fun = ssvFetchBam,
+  signal_files,
+  query_gr,
+  fetch_fun = seqsetvis::ssvFetchBam,
   win_FUN = c("mean", "max")[2],
   sum_FUN = NULL,
   flip_x = NULL,
@@ -15,6 +15,8 @@ track_chip(
   nspline = 10,
   show_lines = FALSE,
   show_fill = TRUE,
+  y_label = "signal",
+  x_scale = "kbp",
   ...
 )
 }
