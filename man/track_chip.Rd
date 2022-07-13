@@ -15,8 +15,14 @@ track_chip(
   nspline = 10,
   show_lines = FALSE,
   show_fill = TRUE,
+  fill_outline_color = NA,
   y_label = "signal",
-  x_scale = "kbp",
+  x_scale = c("bp", "kbp", "Mbp")[2],
+  floor_value = 0,
+  ceiling_value = Inf,
+  mark_colors = NULL,
+  legend.position = "right",
+  names_on_right = TRUE,
   ...
 )
 }

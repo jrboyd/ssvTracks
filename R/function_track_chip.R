@@ -30,16 +30,14 @@ track_chip = function(signal_files,
                       show_fill = TRUE,
                       fill_outline_color = NA,
                       y_label = "signal",
-                      x_scale = "kbp",
+                      x_scale = c("bp", "kbp", "Mbp")[2],
                       floor_value = 0,
                       ceiling_value = Inf,
                       mark_colors = NULL,
                       legend.position = "right",
                       names_on_right = TRUE,
                       ...){
-  stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
-
-  rng = c(start(query_gr), end(query_gr))
+  .check_query_gr(query_gr)
   if(is.null(flip_x)){
     flip_x = as.character(strand(query_gr) == "-")
   }
@@ -82,7 +80,7 @@ track_chip = function(signal_files,
     bw_dt.raw$mark = bw_dt.raw$sample
   }
 
-  bw_dt = bw_dt.raw[, .(y = mean(y)), .(cell, mark, x, id, start, end)]
+  bw_dt = bw_dt.raw[, list(y = mean(y)), .(cell, mark, x, id, start, end)]
   bw_dt[, sample := paste(cell, mark)]
   bw_dt = bw_dt[order(cell)][order(mark)]
 
@@ -120,10 +118,26 @@ track_chip = function(signal_files,
       geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = "mark"), color = fill_outline_color) +
       scale_fill_manual(values = mark_colors)
   }
-  if(flip_x){
-    rng = rev(rng)
+
+  facet_switch = if(names_on_right){
+    NULL
+  }else{
+    "y"
   }
 
+  p_chip = p_chip +
+    labs(y = y_label) +
+    facet_grid(formula("sample~."), switch = facet_switch) +
+    theme_classic() +
+    theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
+    theme(legend.position = legend.position)
+  p_chip = .apply_x_scale(p_chip, x_scale, as.character(seqnames(query_gr)))
+  p_chip = .apply_x_lim(p_chip, query_gr, flip_x)
+  p_chip
+}
+
+.apply_x_scale = function(p, x_scale = c("bp", "kbp", "Mbp")[2]){
+  stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
   x_label_FUN = switch (
     x_scale,
     bp = {
@@ -137,19 +151,20 @@ track_chip = function(signal_files,
     }
   )
 
-  facet_switch = if(names_on_right){
-    NULL
-  }else{
-    "y"
-  }
+  p = p +
+    labs(x = x_scale) +
+    scale_x_continuous(labels = x_label_FUN)
+  p
+}
 
-  p_chip = p_chip +
-    labs(x = x_scale, y = y_label) +
-    facet_grid(formula("sample~."), switch = facet_switch) +
-    theme_classic() +
-    theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
-    scale_x_continuous(labels = x_label_FUN) +
-    coord_cartesian(xlim = rng, expand = TRUE) +
-    theme(legend.position = legend.position)
-  p_chip
+.apply_x_lim = function(p, query_gr, flip_x = NULL){
+  rng = c(start(query_gr), end(query_gr))
+  if(is.null(flip_x)){
+    flip_x = as.character(strand(query_gr) == "-")
+  }
+  if(flip_x){
+    rng = rev(rng)
+  }
+  p = p + coord_cartesian(xlim = rng, expand = TRUE)
+  p
 }

@@ -1,7 +1,8 @@
 testthat::context("track_chip")
 library(ssvTracks)
+library(testthat)
 
-bam_files = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "bam$")
+bam_files = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "100peaks.bam$")
 bw_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+bw$")
 peak_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+Peak$")
 peak_grs = seqsetvis::easyLoad_narrowPeak(peak_files)
@@ -25,6 +26,8 @@ fetch_fun_list = list(
 )
 
 stopifnot(length(files_list) == length(fetch_fun_list))
+
+i = 1
 
 for(i in seq_along(files_list)){
   fetch_files = files_list[[i]]
