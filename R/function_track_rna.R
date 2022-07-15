@@ -12,6 +12,8 @@
     nwin = 3000,
     nspline = 1,
     fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
     y_label = "signal",
     x_scale = c("bp", "kbp", "Mbp")[2],
     floor_value = 0,
@@ -20,12 +22,14 @@
     color_mapping = NULL,
     fill_VAR = "sample",
     fill_mapping = NULL,
+    facet_VAR = "sample",
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
     min_splice_count = 10,
     target_strand = NULL,
-    flip_strand = TRUE,
+    flip_strand = FALSE,
+    return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
@@ -58,6 +62,11 @@
         stop("With file paths as signal_files, fill_VAR must be \"sample\"")
       }
     }
+    if(!is.null(facet_VAR)){
+      if(!facet_VAR == "sample"){
+        stop("With file paths as signal_files, facet_VAR must be \"sample\"")
+      }
+    }
     signal_files = data.frame(
       file = signal_files,
       sample = basename(signal_files)
@@ -88,6 +97,8 @@
     nwin = 3000,
     nspline = 1,
     fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
     y_label = "signal",
     x_scale = c("bp", "kbp", "Mbp")[2],
     floor_value = 0,
@@ -95,13 +106,15 @@
     color_VAR = NULL,
     color_mapping = NULL,
     fill_VAR = "sample",
+    facet_VAR = "sample",
     fill_mapping = NULL,
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
     min_splice_count = 10,
     target_strand = NULL,
-    flip_strand = TRUE,
+    flip_strand = FALSE,
+    return_data = FALSE,
     ...){
 
   if(!is.null(bw_dt.raw$mapped_reads)){
@@ -124,9 +137,9 @@
   }
   if(is.null(bw_dt.raw[[color_VAR]])){
     if(color_VAR == DEF_COLOR_){
-      bw_dt.raw[[color_VAR]] = ""
+      bw_dt.raw[[color_VAR]] = rep("", nrow(bw_dt.raw))
       if(show_splice){
-        splice_dt.raw[[color_VAR]] = ""
+        splice_dt.raw[[color_VAR]] = rep("", nrow(splice_dt.raw))
       }
     }else{
       bw_dt.raw[[color_VAR]] = bw_dt.raw$sample
@@ -145,9 +158,9 @@
   }
   if(is.null(bw_dt.raw[[fill_VAR]])){
     if(fill_VAR == DEF_FILL_){
-      bw_dt.raw[[fill_VAR]] = ""
+      bw_dt.raw[[fill_VAR]] = rep("", nrow(bw_dt.raw))
       if(show_splice){
-        splice_dt.raw[[fill_VAR]] = ""
+        splice_dt.raw[[fill_VAR]] = rep("", nrow(splice_dt.raw))
       }
     }else{
       bw_dt.raw[[fill_VAR]] = bw_dt.raw$sample
@@ -157,30 +170,40 @@
     }
   }
   ####  ####
+  cn = unique(c(color_VAR, fill_VAR, facet_VAR))
+  cn = setdiff(cn, c(DEF_COLOR_, DEF_FILL_))
 
-  bw_dt = bw_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, "x", "start", "end")))]
-  bw_dt[, sample := paste(get(color_VAR), get(fill_VAR))]
-  bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))]
+  bw_dt = bw_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "x", "start", "end")))]
+  bw_dt$sample = apply(bw_dt[, cn, with = FALSE], 1, paste, collapse = " ")
+  bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
   bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
 
-  if(show_splice){
-    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, "start", "end")))]
-    splice_dt[, sample := paste(get(color_VAR), get(fill_VAR))]
-    splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))]
+  if(show_splice & !is.null(splice_dt.raw)){
+    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end")))]
+    splice_dt$sample = apply(splice_dt[, cn, with = FALSE], 1, paste, collapse = " ")
+    splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
     splice_dt$sample = factor(splice_dt$sample, levels = unique(splice_dt$sample))
+  }else{
+    splice_dt = NULL
   }
 
   if(nspline > 1){
     bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = c("sample"))
   }
-  if(flip_x){
-    bw_dt[, x := max(end) - (max(end) - min(start))*x]
-  }else{
-    bw_dt[, x := min(start) + (max(end) - min(start))*x]
-  }
+  #### SOMETHING WRONG WITH FLIP_X and x calc of bw_dt
+  # if(flip_x){
+  #   bw_dt[, x := max(end) - (max(end) - min(start))*x]
+  # }else{
+  #   bw_dt[, x := min(start) + (max(end) - min(start))*x]
+  # }
+  bw_dt[, x := (end + start)/2]
 
   bw_dt[y > ceiling_value, y := ceiling_value]
   bw_dt[y < floor_value, y := floor_value]
+
+  if(return_data){
+    return(list(reads = bw_dt, splices = splice_dt))
+  }
 
   p_rna = ggplot(bw_dt)
   if(show_color){
@@ -193,7 +216,7 @@
     stopifnot(all(bw_dt[[color_VAR]] %in% names(color_mapping)))
 
     p_rna = p_rna +
-      geom_path(aes_string(x = "x", y = "y", color = color_VAR)) +
+      geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha) +
       scale_color_manual(values = color_mapping)
   }
   if(show_fill){
@@ -206,7 +229,7 @@
     stopifnot(all(bw_dt[[fill_VAR]] %in% names(fill_mapping)))
 
     p_rna = p_rna +
-      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color) +
+      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha) +
       scale_fill_manual(values = fill_mapping)
   }
 
@@ -225,7 +248,7 @@
 
   p_rna = p_rna +
     labs(y = paste0(y_label, " (", target_strand, ")")) +
-    facet_grid(formula("sample~."), switch = facet_switch) +
+    facet_grid(formula(paste0(facet_VAR, "~.")), switch = facet_switch) +
     theme_classic() +
     theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
     theme(legend.position = legend.position)
@@ -276,6 +299,8 @@ track_rna.SE = function(
     nwin = 3000,
     nspline = 1,
     fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
     y_label = "signal",
     x_scale = c("bp", "kbp", "Mbp")[2],
     floor_value = 0,
@@ -284,12 +309,14 @@ track_rna.SE = function(
     color_mapping = NULL,
     fill_VAR = "sample",
     fill_mapping = NULL,
+    facet_VAR = "sample",
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
     min_splice_count = 10,
     target_strand = NULL,
-    flip_strand = TRUE,
+    flip_strand = FALSE,
+    return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
@@ -367,11 +394,13 @@ track_rna.PE = function(
     signal_files,
     query_gr,
     win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    # sum_FUN = NULL,
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
     fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
     y_label = "signal",
     x_scale = c("bp", "kbp", "Mbp")[2],
     floor_value = 0,
@@ -380,12 +409,14 @@ track_rna.PE = function(
     color_mapping = NULL,
     fill_VAR = "sample",
     fill_mapping = NULL,
+    facet_VAR = "sample",
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
     min_splice_count = 10,
     target_strand = NULL,
-    flip_strand = TRUE,
+    flip_strand = FALSE,
+    return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
@@ -398,34 +429,30 @@ track_rna.PE = function(
     signal_files, query_gr,
     win_method = "summary",
     win_size = nwin,
-    summary_FUN = sum_FUN,
     return_data.table = TRUE,
-    anchor = "left",
     target_strand = target_strand,
-    flip_strand = flip_strand,
-    fragLens = NA
+    flip_strand = flip_strand
   )
+  args2$bw_dt.raw = bw_dt.raw
 
   if(show_splice){
     splice_dt.raw = ssvFetchBamPE.RNA_splice(
       signal_files,
       query_gr,
-      return_data.table = TRUE,
-      anchor = "left"
+      return_data.table = TRUE
     )
-    if(flip_strand){
-      splice_dt.raw[strand == "-", strand := "tmp"]
-      splice_dt.raw[strand == "+", strand := "-"]
-      splice_dt.raw[strand == "tmp", strand := "+"]
-    }
     if(target_strand %in% c("+", "-")){
       splice_dt.raw = splice_dt.raw[strand == target_strand]
     }
     setnames(splice_dt.raw, "N", "y")
+    args2$splice_dt.raw = splice_dt.raw
+  }else{
+    args2["splice_dt.raw"] = list(NULL)
   }
+#
+#   browser()
 
-  args2$bw_dt.raw = bw_dt.raw
-  args2$splice_dt.raw = splice_dt.raw
+
   do.call(.track_rna_common_after_fetch, args2)
 }
 
