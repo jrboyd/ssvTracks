@@ -136,35 +136,3 @@ track_chip = function(signal_files,
   p_chip
 }
 
-.apply_x_scale = function(p, x_scale = c("bp", "kbp", "Mbp")[2]){
-  stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
-  x_label_FUN = switch (
-    x_scale,
-    bp = {
-      function(x)x
-    },
-    kbp = {
-      function(x)x/1e3
-    },
-    Mbp = {
-      function(x)x/1e6
-    }
-  )
-
-  p = p +
-    labs(x = x_scale) +
-    scale_x_continuous(labels = x_label_FUN)
-  p
-}
-
-.apply_x_lim = function(p, query_gr, flip_x = NULL){
-  rng = c(start(query_gr), end(query_gr))
-  if(is.null(flip_x)){
-    flip_x = as.character(strand(query_gr) == "-")
-  }
-  if(flip_x){
-    rng = rev(rng)
-  }
-  p = p + coord_cartesian(xlim = rng, expand = TRUE)
-  p
-}

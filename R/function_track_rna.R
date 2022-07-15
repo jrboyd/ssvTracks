@@ -1,78 +1,34 @@
 
-.check_query_gr = function(query_gr){
-  if(length(query_gr) > 1){
-    stop("query_gr must be a single region")
-  }
-}
 
-.track_rna_common_before_fetch = function(signal_files,
-                             query_gr,
-                             fetch_fun = seqsetvis::ssvFetchBam,
-                             win_FUN = c("mean", "max")[2],
-                             sum_FUN = NULL,
-                             flip_x = NULL,
-                             nwin = 3000,
-                             nspline = 1,
-                             fill_outline_color = NA,
-                             y_label = "signal",
-                             x_scale = c("bp", "kbp", "Mbp")[2],
-                             floor_value = 0,
-                             ceiling_value = Inf,
-                             color_VAR = NULL,
-                             color_mapping = NULL,
-                             fill_VAR = "sample",
-                             fill_mapping = NULL,
-                             legend.position = "right",
-                             names_on_right = TRUE,
-                             show_splice = TRUE,
-                             min_splice_count = 10,
-                             target_strand = NULL,
-                             flip_strand = TRUE,
-                             ...){
-
-}
-
-#' track_rna.SE
-#'
-#' @param signal_files
-#' @param query_gr
-#' @param fetch_fun
-#' @param win_FUN
-#' @param sum_FUN
-#' @param flip_x
-#' @param nwin
-#' @param nspline
-#' @param ...
-#'
-#' @return
-#' @export
-#' @import seqsetvis
-#'
-#' @examples
-track_rna.SE = function(signal_files,
-                     query_gr,
-                     fetch_fun = seqsetvis::ssvFetchBam,
-                     win_FUN = c("mean", "max")[2],
-                     sum_FUN = NULL,
-                     flip_x = NULL,
-                     nwin = 3000,
-                     nspline = 1,
-                     fill_outline_color = NA,
-                     y_label = "signal",
-                     x_scale = c("bp", "kbp", "Mbp")[2],
-                     floor_value = 0,
-                     ceiling_value = Inf,
-                     color_VAR = NULL,
-                     color_mapping = NULL,
-                     fill_VAR = "sample",
-                     fill_mapping = NULL,
-                     legend.position = "right",
-                     names_on_right = TRUE,
-                     show_splice = TRUE,
-                     min_splice_count = 10,
-                     target_strand = NULL,
-                     flip_strand = TRUE,
-                     ...){
+#' do most error catching and set dynamic args
+#' returns modified copy of args
+.track_rna_common_before_fetch = function(
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    legend.position = "right",
+    names_on_right = TRUE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    target_strand = NULL,
+    flip_strand = TRUE,
+    ...){
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
   .check_query_gr(query_gr)
   if(is.null(color_VAR) & is.null(fill_VAR)){
     stop("At least one of color_VAR or fill_VAR must be set.")
@@ -111,33 +67,42 @@ track_rna.SE = function(signal_files,
     target_strand = as.character(strand(query_gr))
   }
 
-  bw_dt.raw = fetch_fun(signal_files, query_gr,
-                        win_method = "summary",  win_size = nwin,
-                        summary_FUN = sum_FUN,
-                        return_data.table = TRUE,
-                        anchor = "left",
-                        target_strand = target_strand,
-                        flip_strand = flip_strand,
-                        fragLens = NA)
+  #update args and return
+  args$flip_x = flip_x
+  args$target_strand = target_strand
+  args$signal_files = signal_files
+  args$nwin = nwin
+  args$sum_FUN = sum_FUN
+  args
+}
 
-  if(show_splice){
-    splice_dt.raw = fetch_fun(signal_files, query_gr,
-                              win_method = "summary",  win_size = nwin,
-                              summary_FUN = sum_FUN,
-                              return_data.table = TRUE,
-                              anchor = "left",
-                              fragLens = NA,
-                              splice_strategy = "splice_count")
-    if(flip_strand){
-      splice_dt.raw[strand == "-", strand := "tmp"]
-      splice_dt.raw[strand == "+", strand := "-"]
-      splice_dt.raw[strand == "tmp", strand := "+"]
-    }
-    if(target_strand %in% c("+", "-")){
-      splice_dt.raw = splice_dt.raw[strand == target_strand]
-    }
-    setnames(splice_dt.raw, "N", "y")
-  }
+.track_rna_common_after_fetch = function(
+    bw_dt.raw,
+    splice_dt.raw,
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    legend.position = "right",
+    names_on_right = TRUE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    target_strand = NULL,
+    flip_strand = TRUE,
+    ...){
 
   if(!is.null(bw_dt.raw$mapped_reads)){
     bw_dt.raw[, y_raw := y]
@@ -148,7 +113,6 @@ track_rna.SE = function(signal_files,
       splice_dt.raw[, y := y_raw / mapped_reads * 1e6]
     }
   }
-
 
   #### TODO fix bloody mess ####
   DEF_COLOR_ = "default_color__"
@@ -215,8 +179,6 @@ track_rna.SE = function(signal_files,
     bw_dt[, x := min(start) + (max(end) - min(start))*x]
   }
 
-
-
   bw_dt[y > ceiling_value, y := ceiling_value]
   bw_dt[y < floor_value, y := floor_value]
 
@@ -255,7 +217,6 @@ track_rna.SE = function(signal_files,
     )
   }
 
-
   facet_switch = if(names_on_right){
     NULL
   }else{
@@ -273,35 +234,198 @@ track_rna.SE = function(signal_files,
   p_rna
 }
 
-.apply_x_scale = function(p, x_scale = c("bp", "kbp", "Mbp")[2], prefix = NULL){
-  stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
-  x_label_FUN = switch (
-    x_scale,
-    bp = {
-      function(x)x
-    },
-    kbp = {
-      function(x)x/1e3
-    },
-    Mbp = {
-      function(x)x/1e6
+#' track_rna.SE
+#'
+#' @param signal_files
+#' @param query_gr
+#' @param fetch_fun
+#' @param win_FUN
+#' @param sum_FUN
+#' @param flip_x
+#' @param nwin
+#' @param nspline
+#' @param fill_outline_color
+#' @param y_label
+#' @param x_scale
+#' @param floor_value
+#' @param ceiling_value
+#' @param color_VAR
+#' @param color_mapping
+#' @param fill_VAR
+#' @param fill_mapping
+#' @param legend.position
+#' @param names_on_right
+#' @param show_splice
+#' @param min_splice_count
+#' @param target_strand
+#' @param flip_strand
+#' @param ...
+#'
+#' @return
+#' @export
+#' @import seqsetvis
+#'
+#' @examples
+track_rna.SE = function(
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    legend.position = "right",
+    names_on_right = TRUE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    target_strand = NULL,
+    flip_strand = TRUE,
+    ...){
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
+  args2 = do.call(.track_rna_common_before_fetch, args)
+  for(var_name in names(args2)){
+    assign(var_name, args2[[var_name]])
+  }
+
+  bw_dt.raw = fetch_fun(signal_files, query_gr,
+                        win_method = "summary",  win_size = nwin,
+                        summary_FUN = sum_FUN,
+                        return_data.table = TRUE,
+                        anchor = "left",
+                        target_strand = target_strand,
+                        flip_strand = flip_strand,
+                        fragLens = NA)
+
+  if(show_splice){
+    splice_dt.raw = fetch_fun(signal_files, query_gr,
+                              win_method = "summary",  win_size = nwin,
+                              summary_FUN = sum_FUN,
+                              return_data.table = TRUE,
+                              anchor = "left",
+                              fragLens = NA,
+                              splice_strategy = "splice_count")
+    if(flip_strand){
+      splice_dt.raw[strand == "-", strand := "tmp"]
+      splice_dt.raw[strand == "+", strand := "-"]
+      splice_dt.raw[strand == "tmp", strand := "+"]
     }
+    if(target_strand %in% c("+", "-")){
+      splice_dt.raw = splice_dt.raw[strand == target_strand]
+    }
+    setnames(splice_dt.raw, "N", "y")
+  }
+
+  args2$bw_dt.raw = bw_dt.raw
+  args2$splice_dt.raw = splice_dt.raw
+  do.call(.track_rna_common_after_fetch, args2)
+}
+
+#' track_rna.SE
+#'
+#' @param signal_files
+#' @param query_gr
+#' @param fetch_fun
+#' @param win_FUN
+#' @param sum_FUN
+#' @param flip_x
+#' @param nwin
+#' @param nspline
+#' @param fill_outline_color
+#' @param y_label
+#' @param x_scale
+#' @param floor_value
+#' @param ceiling_value
+#' @param color_VAR
+#' @param color_mapping
+#' @param fill_VAR
+#' @param fill_mapping
+#' @param legend.position
+#' @param names_on_right
+#' @param show_splice
+#' @param min_splice_count
+#' @param target_strand
+#' @param flip_strand
+#' @param ...
+#'
+#' @return
+#' @export
+#' @import seqsetvis
+#'
+#' @examples
+track_rna.PE = function(
+    signal_files,
+    query_gr,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    legend.position = "right",
+    names_on_right = TRUE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    target_strand = NULL,
+    flip_strand = TRUE,
+    ...){
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
+  args2 = do.call(.track_rna_common_before_fetch, args)
+  for(var_name in names(args2)){
+    assign(var_name, args2[[var_name]])
+  }
+
+  bw_dt.raw = ssvFetchBamPE.RNA(
+    signal_files, query_gr,
+    win_method = "summary",
+    win_size = nwin,
+    summary_FUN = sum_FUN,
+    return_data.table = TRUE,
+    anchor = "left",
+    target_strand = target_strand,
+    flip_strand = flip_strand,
+    fragLens = NA
   )
 
-  p = p +
-    labs(x = ifelse(is.null(prefix), x_scale, paste(prefix, x_scale))) +
-    scale_x_continuous(labels = x_label_FUN)
-  p
+  if(show_splice){
+    splice_dt.raw = ssvFetchBamPE.RNA_splice(
+      signal_files,
+      query_gr,
+      return_data.table = TRUE,
+      anchor = "left"
+    )
+    if(flip_strand){
+      splice_dt.raw[strand == "-", strand := "tmp"]
+      splice_dt.raw[strand == "+", strand := "-"]
+      splice_dt.raw[strand == "tmp", strand := "+"]
+    }
+    if(target_strand %in% c("+", "-")){
+      splice_dt.raw = splice_dt.raw[strand == target_strand]
+    }
+    setnames(splice_dt.raw, "N", "y")
+  }
+
+  args2$bw_dt.raw = bw_dt.raw
+  args2$splice_dt.raw = splice_dt.raw
+  do.call(.track_rna_common_after_fetch, args2)
 }
 
-.apply_x_lim = function(p, query_gr, flip_x = NULL){
-  rng = c(start(query_gr), end(query_gr))
-  if(is.null(flip_x)){
-    flip_x = as.character(strand(query_gr) == "-")
-  }
-  if(flip_x){
-    rng = rev(rng)
-  }
-  p = p + coord_cartesian(xlim = rng, expand = TRUE)
-  p
-}
