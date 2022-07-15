@@ -96,9 +96,9 @@ track_gene_transcripts(gff_gr, query_gr = query_gr, sel_gene_name = "ESR1")
 ```{r rna files}
 rna_files.all = dir("~/../joeboyd/R_workspace.t630/RNAseq_BRCA/alignment/", pattern = "M.+bam$", full.names = TRUE)
 rna_files = c(
-  rna_files.all[grepl("MCF10A_RNA-Seq_R5", rna_files)],
-  rna_files.all[grepl("MCF7_RNA-Seq_R1_GSM1944518", rna_files)],
-  rna_files.all[grepl("DA-MB-231_RNA-Seq_R1_GSM1944521", rna_files)]
+  rna_files.all[grepl("MCF10A_RNA-Seq_R5", rna_files.all)],
+  rna_files.all[grepl("MCF7_RNA-Seq_R1_GSM1944518", rna_files.all)],
+  rna_files.all[grepl("DA-MB-231_RNA-Seq_R1_GSM1944521", rna_files.all)]
 )
 
 track_rna.SE(rna_files, query_gr = query_gr) +
