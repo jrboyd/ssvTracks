@@ -12,7 +12,8 @@ vignette: >
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = FALSE)
+options(mc.cores = 10)
 ```
 
 ## Overview
@@ -34,11 +35,12 @@ Track types supported:
 ```{r libs}
 suppressPackageStartupMessages({
   library(ssvTracks)
-  library(magrittr)  
+  library(magrittr) 
+  library(GenomicRanges)
 })
 ```
 
-```{r ref}
+```{r load reference}
 gff_gr = rtracklayer::import.gff("~/indexes/HG38canon/GTF/gencode.v36.annotation.gtf")
 ref_gr = split(gff_gr, gff_gr$type)
 
@@ -51,13 +53,11 @@ query_gr = query_gr.l[2]
 
 ## track_chip
 
-You can also embed plots, for example:
-
 ```{r chip files}
 chip_files = "/slipstream/galaxy/uploads/working/qc_framework/output/" %>%
   dir(., pattern = "pooled", full.names = TRUE) %>%
   dir(pattern = ".bam$", full.names = TRUE)
-chip_files
+basename(chip_files)
 ```
 
 ```{r chip plot default}
@@ -70,13 +70,21 @@ chip_cfg$sample = chip_cfg$file %>%
   basename %>%
   sub("_pooled.bam", "", x = .)
 
-library(tidyverse)
-chip_cfg = separate(chip_cfg, sample, into = c("cell", "mark"), sep = "_", remove = FALSE)
+# library(tidyverse)
+chip_cfg = tidyr::separate(chip_cfg, 
+                           sample, 
+                           into = c("cell", "mark"), 
+                           sep = "_", 
+                           remove = FALSE)
+```
 
+```{r chip plot from config}
 chip_cfg$sample = factor(chip_cfg$sample)
 track_chip(signal_files = chip_cfg, 
            query_gr = query_gr)
+```
 
+```{r chip plot from config ordered}
 #factor levels for sample should control order
 chip_cfg$sample = factor(chip_cfg$sample, levels = levels(chip_cfg$sample)[c(2, 3, 1, 5, 6, 4)])
 track_chip(signal_files = chip_cfg, 
@@ -84,41 +92,60 @@ track_chip(signal_files = chip_cfg,
 
 ```
 
-```{r}
+## track_gene_reference
+
+```{r track_gene_reference, fig.width=6.4, fig.height=2.25}
 track_gene_reference(gff_gr, query_gr = query_gr)
 track_gene_reference(gff_gr, query_gr = query_gr, show_tss = TRUE)
 ```
 
-```{r}
+## track_gene_transcripts
+
+```{r track_gene_transcripts}
 track_gene_transcripts(gff_gr, query_gr = query_gr, sel_gene_name = "ESR1")
 ```
+
+## track_rna.SE
 
 ```{r rna files}
 rna_files.all = dir("~/../joeboyd/R_workspace.t630/RNAseq_BRCA/alignment/", pattern = "M.+bam$", full.names = TRUE)
 rna_files = c(
-  rna_files.all[grepl("MCF10A_RNA-Seq_R5", rna_files.all)],
-  rna_files.all[grepl("MCF7_RNA-Seq_R1_GSM1944518", rna_files.all)],
-  rna_files.all[grepl("DA-MB-231_RNA-Seq_R1_GSM1944521", rna_files.all)]
+  MCF10A = rna_files.all[grepl("MCF10A_RNA-Seq_R5", rna_files.all)],
+  MCF7 = rna_files.all[grepl("MCF7_RNA-Seq_R1_GSM1944518", rna_files.all)],
+  MDA231 = rna_files.all[grepl("DA-MB-231_RNA-Seq_R1_GSM1944521", rna_files.all)]
 )
+
 
 track_rna.SE(rna_files, query_gr = query_gr) +
   guides(color = "none", fill = "none")
 ```
 
-```{r}
+```{r rna config}
 rna_cfg = data.frame(file = rna_files)
 rna_cfg$sample = basename(rna_cfg$file)
-rna_cfg = rna_cfg %>% separate(., col = "sample", sep = "_", into = c("cell"), remove = FALSE)
-rna_cfg$cell = rna_cfg$cell %>% sub("MDA-MB-231", "MDA231", .)
+rna_cfg = rna_cfg %>%
+  tidyr::separate(., 
+                  col = "sample", 
+                  sep = "_", 
+                  into = c("cell"), 
+                  remove = FALSE, 
+                  extra = "drop")
+rna_cfg$cell = rna_cfg$cell %>% 
+  sub("MDA-MB-231", "MDA231", .)
+```
 
+```{r rna plot}
 track_rna.SE(rna_cfg, 
              query_gr = resize(query_gr, 5e3, fix = "center"), 
              fill_VAR = "cell", 
+             facet_VAR = "cell",
              nwin = Inf,
              legend.position = "bottom")
 ```
 
-```{r}
+## track_features
+
+```{r peak files}
 np_files = "/slipstream/galaxy/uploads/working/qc_framework/output/" %>%
   dir(., pattern = "pooled", full.names = TRUE) %>%
   dir(pattern = "35000.narrowPeak$", full.names = TRUE)
@@ -126,17 +153,22 @@ names(np_files) = np_files %>%
   basename %>%
   sub("_pooled.+", "", .)
 np_grs = seqsetvis::easyLoad_narrowPeak(np_files)
+```
+
+```{r peak plot default}
 track_features(np_grs, query_gr = query_gr)
 ```
 
-```{r}
+```{r peak config}
 np_cfg = data.frame(file = np_files)
 np_cfg$sample = np_cfg$file %>% 
   basename %>%
   sub("_pooled.+", "", .)
 np_cfg = np_cfg %>% 
-  separate(., "sample", sep = "_", into = c("cell", "mark"), remove = FALSE)
+  tidyr::separate(., "sample", sep = "_", into = c("cell", "mark"), remove = FALSE)
+```
 
+```{r peak plot from config}
 track_features(np_grs, 
                query_gr = query_gr, 
                sample_info_df = np_cfg, 
@@ -146,7 +178,7 @@ track_features(np_grs,
                                 "H4K12AC" = "darkorange"))
 ```
 
-```{r}
+```{r peak plot numeric}
 track_features.numeric(
   np_grs, 
   query_gr = query_gr, 
@@ -155,11 +187,13 @@ track_features.numeric(
   scale_fill_viridis_c()
 ```
 
-```{r assembly1, fig.height=15, fig.width=8}
+## assemble_tracks
+
+```{r assemble plot 1, fig.height=15, fig.width=8}
 plots1 = list(
   track_chip(chip_cfg, query_gr = query_gr),
   
-  track_rna.SE(rna_cfg, query_gr = query_gr, fill_VAR = "cell"),
+  track_rna.SE(rna_cfg, query_gr = query_gr, fill_VAR = "cell", facet_VAR = "cell"),
   
   track_features(np_grs[grepl("K4ME3", names(np_grs))], 
                  query_gr = query_gr, 
@@ -169,9 +203,19 @@ plots1 = list(
   track_gene_reference(gff_gr, query_gr = query_gr, show_tss = TRUE),
   track_gene_transcripts(gff_gr, query_gr = query_gr, sel_gene_name = "ESR1")
 )
+```
+
+```{r plot assembled default, fig.height=13, fig.width=10}
 assemble_tracks(
   plots1,
   query_gr = query_gr
 )
+```
 
+```{r plot assembled rel_heights, fig.height=13, fig.width=10}
+assemble_tracks(
+  plots1,
+  query_gr = query_gr, 
+  rel_heights = c(2, 1, 1, 1, 1.5)
+)
 ```

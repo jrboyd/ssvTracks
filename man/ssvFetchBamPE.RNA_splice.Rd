@@ -2,7 +2,7 @@
 % Please edit documentation in R/function_fetch_bamPE.R
 \name{ssvFetchBamPE.RNA_splice}
 \alias{ssvFetchBamPE.RNA_splice}
-\title{Title}
+\title{ssvFetchBamPE.RNA_splice}
 \usage{
 ssvFetchBamPE.RNA_splice(
   file_paths,
@@ -15,12 +15,13 @@ ssvFetchBamPE.RNA_splice(
   flip_strand = FALSE,
   n_cores = getOption("mc.cores", 1),
   force_skip_centerFix = TRUE,
-  n_region_splits = 1
+  n_region_splits = 1,
+  ...
 )
 }
 \arguments{
 \item{n_region_splits}{}
 }
 \description{
-Title
+ssvFetchBamPE.RNA_splice
 }

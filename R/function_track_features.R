@@ -24,7 +24,8 @@ track_features = function(feature_grs,
                           manual_levels = NULL,
                           x_scale = c("bp", "kbp", "Mbp")[2],
                           color_mapping = NULL,
-                          fill_mapping = NULL){
+                          fill_mapping = NULL,
+                          legend.position = "right"){
   .check_query_gr(query_gr)
   if(is(feature_grs, "GRangesList")) feature_grs = as.list(feature_grs)
   if(is.list(feature_grs)){
@@ -105,7 +106,7 @@ track_features = function(feature_grs,
     scale_y_continuous(breaks = seq_along(lev)-.5, labels = lev, limits = c(0, length(lev))) +
     theme(panel.background = element_blank(),
           panel.grid = element_blank(),
-          legend.position = "bottom") +
+          legend.position = legend.position) +
     scale_color_manual(values = color_mapping) +
     scale_fill_manual(values = fill_mapping)
   p_gr = .apply_x_scale(p_gr, x_scale = x_scale, as.character(seqnames(query_gr)))
@@ -141,7 +142,8 @@ track_features.numeric = function(feature_grs,
                                   manual_levels = NULL,
                                   x_scale = c("bp", "kbp", "Mbp")[2],
                                   color_mapping = NULL,
-                                  fill_mapping = NULL){
+                                  fill_mapping = NULL,
+                                  legend.position = "right"){
   .check_query_gr(query_gr)
   if(is.null(color_VAR) & is.null(fill_VAR)) stop("One of color_VAR or fill_VAR must be set.")
 
@@ -198,7 +200,7 @@ track_features.numeric = function(feature_grs,
     scale_y_continuous(breaks = seq_along(lev)-.5, labels = lev, limits = c(0, length(lev))) +
     theme(panel.background = element_blank(),
           panel.grid = element_blank(),
-          legend.position = "bottom")
+          legend.position = legend.position)
 
   p_gr = .apply_x_scale(p_gr, x_scale = x_scale, as.character(seqnames(query_gr)))
   p_gr = .apply_x_lim(p_gr, query_gr, flip_x = flip_x)

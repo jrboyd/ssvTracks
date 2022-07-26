@@ -2,7 +2,7 @@
 % Please edit documentation in R/function_fetch_bamPE.R
 \name{ssvFetchBamPE.RNA}
 \alias{ssvFetchBamPE.RNA}
-\title{Title}
+\title{ssvFetchBamPE.RNA}
 \usage{
 ssvFetchBamPE.RNA(
   file_paths,
@@ -24,5 +24,5 @@ ssvFetchBamPE.RNA(
 \item{n_region_splits}{}
 }
 \description{
-Title
+ssvFetchBamPE.RNA
 }

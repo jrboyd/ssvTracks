@@ -17,7 +17,8 @@ track_features(
   manual_levels = NULL,
   x_scale = c("bp", "kbp", "Mbp")[2],
   color_mapping = NULL,
-  fill_mapping = NULL
+  fill_mapping = NULL,
+  legend.position = "right"
 )
 }
 \arguments{

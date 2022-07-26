@@ -67,10 +67,18 @@
         stop("With file paths as signal_files, facet_VAR must be \"sample\"")
       }
     }
-    signal_files = data.frame(
-      file = signal_files,
-      sample = basename(signal_files)
-    )
+    if(is.null(names(signal_files))){
+      signal_files = data.frame(
+        file = signal_files,
+        sample = basename(signal_files)
+      )
+    }else{
+      signal_files = data.frame(
+        file = signal_files,
+        sample = names(signal_files)
+      )
+    }
+
   }
   if(is.null(target_strand)){
     target_strand = as.character(strand(query_gr))

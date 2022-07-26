@@ -10,25 +10,29 @@
 #' @examples
 assemble_tracks = function(plot_list, query_gr, rel_heights = rep(1, length(plot_list))){
   stopifnot(length(query_gr) == 1)
-  # set x-limits on all plots
-  xlim = c(start(query_gr), end(query_gr))
-  if(as.character(strand(query_gr)) == "-") xlim = rev(xlim)
-  for(i in seq(1, length(plot_list))){
-    plot_list[[i]] = plot_list[[i]] +
-      labs(x = "") +
-      coord_cartesian(xlim = xlim)
-  }
-  # remove x-axis labels from all plots but final
-  if(length(plot_list) > 1){
-    for(i in seq(1, length(plot_list) - 1)){
-      plot_list[[i]] = plot_list[[i]] + labs(x = "")
+  suppressMessages({
+    # set x-limits on all plots
+    xlim = c(start(query_gr), end(query_gr))
+    if(as.character(strand(query_gr)) == "-") xlim = rev(xlim)
+    for(i in seq(1, length(plot_list))){
+      plot_list[[i]] = plot_list[[i]] +
+        labs(x = "") +
+        coord_cartesian(xlim = xlim)
     }
-  }
-  # add axis labels to final plot
-  plot_list[[length(plot_list)]] = plot_list[[length(plot_list)]] + labs(x = paste(as.character(seqnames(query_gr)), "kbp")) + scale_x_continuous(labels = function(x)x/1e3)
-  plot_list = sync_width(plot_list)
-  pg = cowplot::plot_grid(plotlist = plot_list, ncol = 1,
-                          rel_heights = rel_heights, scale = 1)
+    # remove x-axis labels from all plots but final
+    if(length(plot_list) > 1){
+      for(i in seq(1, length(plot_list) - 1)){
+        plot_list[[i]] = plot_list[[i]] + labs(x = "")
+      }
+    }
+    # add axis labels to final plot
+    plot_list[[length(plot_list)]] = plot_list[[length(plot_list)]] +
+      labs(x = paste(as.character(seqnames(query_gr)), "kbp")) +
+      scale_x_continuous(labels = function(x)x/1e3)
+    plot_list = sync_width(plot_list)
+    pg = cowplot::plot_grid(plotlist = plot_list, ncol = 1,
+                            rel_heights = rel_heights, scale = 1)
+  })
   pg
 }
 

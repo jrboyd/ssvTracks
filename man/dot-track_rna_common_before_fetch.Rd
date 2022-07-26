@@ -15,6 +15,8 @@ returns modified copy of args}
   nwin = 3000,
   nspline = 1,
   fill_outline_color = NA,
+  fill_alpha = 1,
+  color_alpha = 1,
   y_label = "signal",
   x_scale = c("bp", "kbp", "Mbp")[2],
   floor_value = 0,
@@ -23,12 +25,14 @@ returns modified copy of args}
   color_mapping = NULL,
   fill_VAR = "sample",
   fill_mapping = NULL,
+  facet_VAR = "sample",
   legend.position = "right",
   names_on_right = TRUE,
   show_splice = TRUE,
   min_splice_count = 10,
   target_strand = NULL,
-  flip_strand = TRUE,
+  flip_strand = FALSE,
+  return_data = FALSE,
   ...
 )
 }
