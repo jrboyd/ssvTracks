@@ -108,7 +108,7 @@ track_gene_reference(gff_gr,
 One of the more effective and simplest ways to clean GENCODE genes up is by
 selecting for only transcripts with the "basic" tag.
 
-```{r track_gene_reference show_tss, fig.width=6.4, fig.height=2.25}
+```{r track_gene_reference show_tss basic, fig.width=6.4, fig.height=2.25}
 track_gene_reference(subset(gff_gr, tag == "basic"), 
                      query_gr = query_gr, 
                      show_tss = TRUE)
@@ -216,25 +216,30 @@ into a single consistent figure.
 plots1 = list(
   track_chip(
     chip_cfg, 
-    query_gr = query_gr),
+    query_gr = query_gr
+  ),
   track_rna.SE(
     rna_cfg, 
     query_gr = query_gr, 
     fill_VAR = "cell", 
-    facet_VAR = "cell"),
+    facet_VAR = "cell"
+  ),
   track_features(
     np_grs[grepl("K4ME3", names(np_grs))], 
     query_gr = query_gr, 
     sample_info_df = np_cfg, 
-    sample_info_df.fill_VAR = "cell"),
+    sample_info_df.fill_VAR = "cell"
+  ),
   track_gene_reference(
     subset(gff_gr, tag == "basic"), 
     query_gr = query_gr, 
-    show_tss = TRUE),
+    show_tss = TRUE
+  ),
   track_gene_transcripts(
     gff_gr, 
     query_gr = query_gr, 
-    sel_gene_name = "ESR1")
+    sel_gene_name = "ESR1"
+  )
 )
 ```
 

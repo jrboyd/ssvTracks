@@ -264,7 +264,7 @@ DEF_FILL_ = "default_fill__"
     facet_grid(formula(paste0(facet_VAR, "~.")), switch = facet_switch) +
     theme_classic() +
     theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
-    theme(legend.position = legend.position)
+    theme(legend.position = legend.position) +
   p_rna = .apply_x_scale(p_rna, x_scale, as.character(seqnames(query_gr)))
   p_rna = .apply_x_lim(p_rna, query_gr, flip_x)
   p_rna
@@ -345,14 +345,12 @@ DEF_FILL_ = "default_fill__"
   }
 
   if(show_splice){
-    p_rna =   p_rna + ggbio::geom_arch(
+    p_rna = p_rna + ggbio::geom_arch(
       data = splice_dt[y >= min_splice_count], aes(x = start, xend = end, height = y),
       color = "black"
     )
   }
-
-
-
+  p_rna
 }
 
 #' track_rna.SE

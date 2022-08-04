@@ -191,7 +191,9 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
   p_track_ref = ggplot(ex_dt, aes(xmin = start, xmax = end, ymin = ymin, ymax = ymax)) +
     geom_rect() +
     scale_y_continuous(labels = levels(ex_dt$transcript_id), breaks = seq_along(levels(ex_dt$transcript_id))-.5) +
-    theme(panel.grid.minor.y = element_blank()) +
+    theme_classic() +
+    theme(panel.grid.minor.y = element_line(size = 1, color = "gray")) +
+    theme(panel.grid.major.y = element_line(size = 1, color = "gray")) +
     labs(title = sel_gene_name, substitle = unique(ex_dt$seqnames))
 
   p_track_ref = .apply_x_scale(p_track_ref, x_scale, as.character(seqnames(query_gr)))

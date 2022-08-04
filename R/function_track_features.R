@@ -104,6 +104,7 @@ track_features = function(feature_grs,
   }
   p_gr = p_gr +
     scale_y_continuous(breaks = seq_along(lev)-.5, labels = lev, limits = c(0, length(lev))) +
+    theme_classic() +
     theme(panel.background = element_blank(),
           panel.grid = element_blank(),
           legend.position = legend.position) +
@@ -198,6 +199,7 @@ track_features.numeric = function(feature_grs,
 
   p_gr = p_gr +
     scale_y_continuous(breaks = seq_along(lev)-.5, labels = lev, limits = c(0, length(lev))) +
+    theme_classic() +
     theme(panel.background = element_blank(),
           panel.grid = element_blank(),
           legend.position = legend.position)
