@@ -1,7 +1,7 @@
 
 #' track_chip
 #'
-#' @param signal_files
+#' @param signal_files Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame
 #' @param query_gr
 #' @param fetch_fun
 #' @param win_FUN
@@ -9,8 +9,18 @@
 #' @param flip_x
 #' @param nwin
 #' @param nspline
-#' @param show_lines
-#' @param show_fill
+#' @param fill_outline_color
+#' @param y_label
+#' @param x_scale
+#' @param floor_value
+#' @param ceiling_value
+#' @param color_VAR
+#' @param color_mapping
+#' @param fill_VAR
+#' @param fill_mapping
+#' @param facet_VAR
+#' @param legend.position
+#' @param names_on_right
 #' @param ...
 #'
 #' @return
@@ -18,6 +28,58 @@
 #' @import seqsetvis
 #'
 #' @examples
+#'
+#' bam_files = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "100peaks.bam$")
+#' bw_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+bw$")
+#' peak_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+Peak$")
+#' peak_grs = seqsetvis::easyLoad_narrowPeak(peak_files)
+#' query_gr = peak_grs[[1]][1]
+#'
+#' track_chip(bam_files, query_gr)
+#'
+#' track_chip(
+#'   bam_files,
+#'   query_gr,
+#'   floor_value = 0,
+#'   ceiling_value = 5
+#' )
+#'
+#' bam_cfg = data.frame(bam_files)
+#' track_chip(bam_cfg, query_gr)
+#'
+#' bam_cfg = data.frame(not_file = bam_files)
+#' track_chip(bam_cfg, query_gr)
+#'
+#' bam_cfg = data.frame(bam_files, name = basename(bam_files))
+#' track_chip(bam_cfg, query_gr, fill_VAR = "name", facet_VAR = "name")
+#'
+#' bam_cfg = data.frame(bam_files, name = basename(bam_files))
+#' #use separate to parse out metadata
+#' bam_cfg = bam_cfg %>%
+#'   separate(.,
+#'   col = "name",
+#'   sep = "_",
+#'   into = c("cell", "mark"),
+#'   remove = FALSE,
+#'   extra = "drop")
+#'
+#' track_chip(
+#'   bam_cfg,
+#'   query_gr,
+#'   fill_VAR = "mark",
+#'   color_VAR = "mark",
+#'   facet_VAR = "cell",
+#'   nspline = 1,
+#'   x_scale = "bp",
+#'   fill_alpha = .2
+#' )
+#'
+#' track_chip(bw_files, query_gr, target_strand = "*", fetch_fun = seqsetvis::ssvFetchBigwig, nspline = 1)
+#'
+#' bam_files.PE = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "PE.+bam$")
+#' bed_gr = rtracklayer::import.bed(system.file(package = "ssvTracks", "extdata/ESR1.bed"))
+#' track_chip(bam_files.PE, bed_gr, target_strand = "*", fetch_fun = seqsetvis::ssvFetchBamPE)
+#'
 track_chip = function(signal_files,
                       query_gr,
                       fetch_fun = seqsetvis::ssvFetchBam,
@@ -25,114 +87,41 @@ track_chip = function(signal_files,
                       sum_FUN = NULL,
                       flip_x = NULL,
                       nwin = 3000,
-                      nspline = 10,
-                      show_lines = FALSE,
-                      show_fill = TRUE,
+                      nspline = 1,
                       fill_outline_color = NA,
+                      fill_alpha = 1,
+                      color_alpha = 1,
                       y_label = "signal",
                       x_scale = c("bp", "kbp", "Mbp")[2],
                       floor_value = 0,
                       ceiling_value = Inf,
-                      mark_colors = NULL,
+                      color_VAR = NULL,
+                      color_mapping = NULL,
+                      fill_VAR = "sample",
+                      fill_mapping = NULL,
+                      facet_VAR = "sample",
                       legend.position = "right",
                       names_on_right = TRUE,
                       ...){
-  .check_query_gr(query_gr)
-  if(is.null(flip_x)){
-    flip_x = as.character(strand(query_gr) == "-")
-  }
-  if(is.null(sum_FUN)){
-    sum_FUN = switch (win_FUN,
-                      max = function(x, w)max(x),
-                      mean = weighted.mean
-    )
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
+  args2 = do.call(.track_all_common_before_fetch, args)
+  for(var_name in names(args2)){
+    assign(var_name, args2[[var_name]])
   }
 
-  fetch_gr = resize(query_gr, 1.2*width(query_gr), fix = "center")
-
-  if(nwin > width(fetch_gr)){
-    nwin = width(fetch_gr)
-  }
-
-  if(!is.data.frame(signal_files)){
-    signal_files = data.frame(
-      file = signal_files,
-      sample = basename(signal_files)
-    )
-  }
-
-  bw_dt.raw = fetch_fun(signal_files, fetch_gr,
-                        win_method = "summary",  win_size = nwin,
+  bw_dt.raw = fetch_fun(signal_files,
+                        query_gr,
+                        win_method = "summary",
+                        win_size = nwin,
                         summary_FUN = sum_FUN,
                         return_data.table = TRUE,
                         anchor = "left",
-                        fragLens = NA)
-  if(!is.null(bw_dt.raw$mapped_reads)){
-    bw_dt.raw[, y_raw := y]
-    bw_dt.raw[, y := y_raw / mapped_reads * 1e6]
-    if(y_label == "signal") y_label = "RPM"
-  }
+                        fragLens = NA
+  )
 
-  if(is.null(bw_dt.raw$cell)){
-    bw_dt.raw$cell = ""
-  }
-  if(is.null(bw_dt.raw$mark)){
-    bw_dt.raw$mark = bw_dt.raw$sample
-  }
+  args2$bw_dt.raw = bw_dt.raw
 
-  bw_dt = bw_dt.raw[, list(y = mean(y)), .(cell, mark, x, id, start, end)]
-  bw_dt[, sample := paste(cell, mark)]
-  bw_dt = bw_dt[order(cell)][order(mark)]
-
-  bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
-
-  if(nspline > 1){
-    bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = c("sample", "id"))
-  }
-  if(flip_x){
-    bw_dt[, x := max(end) - (max(end) - min(start))*x]
-  }else{
-    bw_dt[, x := min(start) + (max(end) - min(start))*x]
-  }
-
-  if(is.null(mark_colors)){
-    mark_colors = seqsetvis::safeBrew(bw_dt$mark)
-    if(!is.null(mark_colors["input"])){
-      mark_colors["input"] = "gray"
-    }
-  }
-  stopifnot(all(bw_dt$mark %in% names(mark_colors)))
-
-
-  bw_dt[y > ceiling_value, y := ceiling_value]
-  bw_dt[y < floor_value, y := floor_value]
-
-  p_chip = ggplot(bw_dt)
-  if(show_lines){
-    p_chip = p_chip +
-      geom_path(aes_string(x = "x", y = "y", color = "mark")) +
-      scale_color_manual(values = mark_colors)
-  }
-  if(show_fill){
-    p_chip = p_chip +
-      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = "mark"), color = fill_outline_color) +
-      scale_fill_manual(values = mark_colors)
-  }
-
-  facet_switch = if(names_on_right){
-    NULL
-  }else{
-    "y"
-  }
-
-  p_chip = p_chip +
-    labs(y = y_label) +
-    facet_grid(formula("sample~."), switch = facet_switch) +
-    theme_classic() +
-    theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
-    theme(legend.position = legend.position)
-  p_chip = .apply_x_scale(p_chip, x_scale, as.character(seqnames(query_gr)))
-  p_chip = .apply_x_lim(p_chip, query_gr, flip_x)
-  p_chip
+  do.call(.track_all_common_after_fetch, args2)
 }
 

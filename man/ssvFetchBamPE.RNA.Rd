@@ -13,7 +13,7 @@ ssvFetchBamPE.RNA(
   return_data.table = FALSE,
   win_method = "sample",
   max_dupes = Inf,
-  flip_strand = FALSE,
+  flip_strand = TRUE,
   sum_reads = TRUE,
   n_cores = getOption("mc.cores", 1),
   force_skip_centerFix = TRUE,

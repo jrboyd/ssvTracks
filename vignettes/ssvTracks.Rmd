@@ -46,7 +46,7 @@ ref_gr = split(gff_gr, gff_gr$type)
 
 ex_gr = subset(ref_gr$exon, gene_name == "ESR1")
 tx_gr = subset(ref_gr$transcript, gene_name == "ESR1")
-query_gr.l = reduce(promoters(tx_gr, 2e4, 2e4))
+query_gr.l = GenomicRanges::reduce(promoters(tx_gr, 2e4, 2e4))
 
 query_gr = query_gr.l[2]
 ```

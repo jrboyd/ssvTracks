@@ -136,19 +136,53 @@ track_gene_reference = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
 #' @param transcript_subset
 #' @param flip_x
 #' @param x_scale
+#' @param intron_thickness
+#' @param exon_height
+#' @param exon_color
+#' @param intron_color
+#' @param highlight_transcripts
+#' @param highlight_color
+#' @param highlight_fill
+#' @param show_tss
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' gtf_file = system.file(package = "ssvTracks", "extdata/gencode.v35.annotation.IKZF1.gtf", mustWork = TRUE)
+#' ref_gr = rtracklayer::import.gff(gtf_file)
+#'
+#' track_gene_transcripts(ref_gr,
+#'   sel_gene_name = "IKZF1",
+#'   intron_thickness = 2,
+#'   exon_height = .8,
+#'   show_tss = TRUE)
+#'
+#' track_gene_transcripts(ref_gr,
+#'   sel_gene_name = "IKZF1",
+#'   intron_thickness = 2,
+#'   highlight_transcripts = c("ENST00000642219.1"),
+#'   highlight_color = "darkorange",
+#'   show_tss = TRUE)
 track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
                                   sel_gene_name,
                                   query_gr = NULL,
                                   transcript_subset = NULL,
                                   flip_x = NULL,
-                                  x_scale = c("bp", "kbp", "Mbp")[2]){
+                                  x_scale = c("bp", "kbp", "Mbp")[2],
+                                  intron_thickness = 0,
+                                  exon_height = .8,
+                                  exon_color = "black",
+                                  intron_color = exon_color,
+                                  highlight_transcripts = NULL,
+                                  highlight_color = "red",
+                                  highlight_fill = "red",
+                                  show_tss = FALSE
+
+){
   if(!is.null(query_gr)) .check_query_gr(query_gr)
   stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
+  stopifnot(exon_height > 0 & exon_height <= 1)
   if(!is(ref, "GRanges")){
     if(file.exists(ref)){
       ref = rtracklayer::import.gff(ref, format =  "gtf", feature.type = "exon")
@@ -179,7 +213,7 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
   ex_dt = ex_dt[, list(seqnames, start, end, gene_id, transcript_id, exon_id, gene_name, strand)]
   ex_dt$transcript_id = factor(ex_dt$transcript_id, levels = transcript_lev)
 
-  pad = .1
+  pad = (1-exon_height)/2
   ex_dt[, ymin := as.numeric(transcript_id)-1+pad]
   ex_dt[, ymax := as.numeric(transcript_id)-pad]
 
@@ -188,13 +222,42 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
     query_gr = GenomicRanges::resize(query_gr, 1.1 * GenomicRanges::width(query_gr), fix = "center")
   }
 
-  p_track_ref = ggplot(ex_dt, aes(xmin = start, xmax = end, ymin = ymin, ymax = ymax)) +
-    geom_rect() +
+  ex_dt$color = exon_color
+  if(!is.null(highlight_transcripts)){
+    ex_dt[transcript_id %in% highlight_transcripts, color := highlight_color]
+  }
+
+  p_track_ref = ggplot()
+  if(intron_thickness > 0){
+    in_dt = ex_dt[, .(start = min(start), end = max(end), y = (ymin + ymax) / 2), .(transcript_id)]
+    in_dt$color = intron_color
+    if(!is.null(highlight_transcripts)){
+      in_dt[transcript_id %in% highlight_transcripts, color := highlight_color]
+    }
+    p_track_ref = p_track_ref +
+      geom_segment(data = in_dt, aes(x = start, xend = end, y = y, yend = y, color = color), size = intron_thickness)
+    if(show_tss){
+      if(ex_dt$strand[1] == "-"){
+        p_track_ref = p_track_ref +
+          geom_segment(data = in_dt, aes(x = end, xend = end-1, y = y, yend = y, color = color), size = intron_thickness, arrow = arrow(length = unit(1 / length(transcript_lev) * exon_height * .8, "npc")))
+      }else{
+        p_track_ref = p_track_ref +
+          geom_segment(data = in_dt, aes(x = start, xend = start+1, y = y, yend = y, color = color), size = intron_thickness, arrow = arrow(length = unit(1 / length(transcript_lev) * exon_height * .8, "npc")))
+      }
+      p_track_ref = p_track_ref + labs(caption = "arrow indicates TSS")
+
+    }
+  }
+  p_track_ref = p_track_ref +
+    geom_rect(data = ex_dt, aes(xmin = start, xmax = end, ymin = ymin, ymax = ymax, color = color, fill = color)) +
+    scale_color_identity() +
+    scale_fill_identity() +
     scale_y_continuous(labels = levels(ex_dt$transcript_id), breaks = seq_along(levels(ex_dt$transcript_id))-.5) +
     theme_classic() +
-    theme(panel.grid.minor.y = element_line(size = 1, color = "gray")) +
+    theme(panel.grid.minor.y = element_blank()) +
     theme(panel.grid.major.y = element_line(size = 1, color = "gray")) +
-    labs(title = sel_gene_name, substitle = unique(ex_dt$seqnames))
+    labs(title = sel_gene_name, substitle = unique(ex_dt$seqnames)) +
+    labs(y = "")
 
   p_track_ref = .apply_x_scale(p_track_ref, x_scale, as.character(seqnames(query_gr)))
   p_track_ref = .apply_x_lim(p_track_ref, query_gr, flip_x)
