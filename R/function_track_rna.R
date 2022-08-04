@@ -1,8 +1,4 @@
-
-
-#' do most error catching and set dynamic args
-#' returns modified copy of args
-.track_rna_common_before_fetch = function(
+.track_all_common_before_fetch = function(
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
@@ -25,12 +21,11 @@
     facet_VAR = "sample",
     legend.position = "right",
     names_on_right = TRUE,
-    show_splice = TRUE,
-    min_splice_count = 10,
     target_strand = NULL,
     flip_strand = FALSE,
     return_data = FALSE,
-    ...){
+    ...
+){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
   .check_query_gr(query_gr)
@@ -91,6 +86,73 @@
   args$nwin = nwin
   args$sum_FUN = sum_FUN
   args
+}
+
+.track_all_common_before_fetch = function(
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    facet_VAR = "sample",
+    legend.position = "right",
+    names_on_right = TRUE,
+    target_strand = NULL,
+    flip_strand = FALSE,
+    return_data = FALSE,
+    ...){
+
+}
+
+#' do most error catching and set dynamic args
+#' returns modified copy of args
+.track_rna_common_before_fetch = function(
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    fill_mapping = NULL,
+    facet_VAR = "sample",
+    legend.position = "right",
+    names_on_right = TRUE,
+    target_strand = NULL,
+    flip_strand = FALSE,
+    return_data = FALSE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    ...){
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
+  args2 = do.call(.track_all_common_before_fetch, args = args)
+  args2
 }
 
 .track_rna_common_after_fetch = function(
@@ -289,7 +351,7 @@
 #' @param show_splice
 #' @param min_splice_count
 #' @param target_strand
-#' @param flip_strand
+#' @param flip_strand logical. Should aligned strand be flipped relative to query_gr.  The vast majority of SE libraries are actually flip_strand, so default flip_strand is TRUE.
 #' @param ...
 #'
 #' @return
@@ -323,7 +385,7 @@ track_rna.SE = function(
     show_splice = TRUE,
     min_splice_count = 10,
     target_strand = NULL,
-    flip_strand = FALSE,
+    flip_strand = TRUE,
     return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
@@ -332,7 +394,6 @@ track_rna.SE = function(
   for(var_name in names(args2)){
     assign(var_name, args2[[var_name]])
   }
-
   bw_dt.raw = fetch_fun(signal_files, query_gr,
                         win_method = "summary",  win_size = nwin,
                         summary_FUN = sum_FUN,
@@ -366,7 +427,7 @@ track_rna.SE = function(
   do.call(.track_rna_common_after_fetch, args2)
 }
 
-#' track_rna.SE
+#' track_rna.PE
 #'
 #' @param signal_files
 #' @param query_gr
@@ -457,8 +518,8 @@ track_rna.PE = function(
   }else{
     args2["splice_dt.raw"] = list(NULL)
   }
-#
-#   browser()
+  #
+  #   browser()
 
 
   do.call(.track_rna_common_after_fetch, args2)

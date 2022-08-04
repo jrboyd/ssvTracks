@@ -95,8 +95,23 @@ track_chip(signal_files = chip_cfg,
 ## track_gene_reference
 
 ```{r track_gene_reference, fig.width=6.4, fig.height=2.25}
-track_gene_reference(gff_gr, query_gr = query_gr)
-track_gene_reference(gff_gr, query_gr = query_gr, show_tss = TRUE)
+track_gene_reference(gff_gr, 
+                     query_gr = query_gr)
+```
+
+```{r track_gene_reference show_tss, fig.width=6.4, fig.height=2.25}
+track_gene_reference(gff_gr, 
+                     query_gr = query_gr, 
+                     show_tss = TRUE)
+```
+
+One of the more effective and simplest ways to clean GENCODE genes up is by
+selecting for only transcripts with the "basic" tag.
+
+```{r track_gene_reference show_tss, fig.width=6.4, fig.height=2.25}
+track_gene_reference(subset(gff_gr, tag == "basic"), 
+                     query_gr = query_gr, 
+                     show_tss = TRUE)
 ```
 
 ## track_gene_transcripts
@@ -141,6 +156,7 @@ track_rna.SE(rna_cfg,
              facet_VAR = "cell",
              nwin = Inf,
              legend.position = "bottom")
+
 ```
 
 ## track_features
@@ -159,6 +175,8 @@ np_grs = seqsetvis::easyLoad_narrowPeak(np_files)
 track_features(np_grs, query_gr = query_gr)
 ```
 
+It is a bit different to bring meta data into track_features().  We need to supply a separate data.frame as sample_info_df. It is critical that the values of sample_info_df.name_VAR (default "sample") match the names of the GRanges list iin feature_grs.
+
 ```{r peak config}
 np_cfg = data.frame(file = np_files)
 np_cfg$sample = np_cfg$file %>% 
@@ -169,13 +187,14 @@ np_cfg = np_cfg %>%
 ```
 
 ```{r peak plot from config}
-track_features(np_grs, 
-               query_gr = query_gr, 
-               sample_info_df = np_cfg, 
-               sample_info_df.fill_VAR = "mark",
-               fill_mapping = c("H3K4ME3" = "forestgreen", 
-                                "H3K4AC" = "purple", 
-                                "H4K12AC" = "darkorange"))
+track_features(
+  feature_grs = np_grs, 
+  query_gr = query_gr, 
+  sample_info_df = np_cfg,
+  sample_info_df.fill_VAR = "mark",
+  fill_mapping = c("H3K4ME3" = "forestgreen", 
+                   "H3K4AC" = "purple", 
+                   "H4K12AC" = "darkorange"))
 ```
 
 ```{r peak plot numeric}
@@ -189,21 +208,42 @@ track_features.numeric(
 
 ## assemble_tracks
 
+If we create a list of *ssvTrack* generated plots (or any or other ggplot that
+makes sense to include; genomic position on x-axis) we can then assemble them
+into a single consistent figure.
+
 ```{r assemble plot 1, fig.height=15, fig.width=8}
 plots1 = list(
-  track_chip(chip_cfg, query_gr = query_gr),
-  
-  track_rna.SE(rna_cfg, query_gr = query_gr, fill_VAR = "cell", facet_VAR = "cell"),
-  
-  track_features(np_grs[grepl("K4ME3", names(np_grs))], 
-                 query_gr = query_gr, 
-                 sample_info_df = np_cfg, 
-                 sample_info_df.fill_VAR = "cell"),
-  
-  track_gene_reference(gff_gr, query_gr = query_gr, show_tss = TRUE),
-  track_gene_transcripts(gff_gr, query_gr = query_gr, sel_gene_name = "ESR1")
+  track_chip(
+    chip_cfg, 
+    query_gr = query_gr),
+  track_rna.SE(
+    rna_cfg, 
+    query_gr = query_gr, 
+    fill_VAR = "cell", 
+    facet_VAR = "cell"),
+  track_features(
+    np_grs[grepl("K4ME3", names(np_grs))], 
+    query_gr = query_gr, 
+    sample_info_df = np_cfg, 
+    sample_info_df.fill_VAR = "cell"),
+  track_gene_reference(
+    subset(gff_gr, tag == "basic"), 
+    query_gr = query_gr, 
+    show_tss = TRUE),
+  track_gene_transcripts(
+    gff_gr, 
+    query_gr = query_gr, 
+    sel_gene_name = "ESR1")
 )
 ```
+
+**assemble_tracks** aligns all plots in a single column.  This ensures a
+consistent x-axis and margin size.  Because of the method used to align margins,
+all margins will be widened to the maximum margin present.  Therefore if a
+single plot has a particularly wide legend element it can cause all plots to
+become squished.  You may wish to disable or modify legends or similar elements
+to avoid this behavior.
 
 ```{r plot assembled default, fig.height=13, fig.width=10}
 assemble_tracks(
@@ -211,6 +251,9 @@ assemble_tracks(
   query_gr = query_gr
 )
 ```
+
+The **rel_heights** parameter allows control of each track plot's relative size.
+By default all plots will be given the same space, which is often inappropriate.
 
 ```{r plot assembled rel_heights, fig.height=13, fig.width=10}
 assemble_tracks(

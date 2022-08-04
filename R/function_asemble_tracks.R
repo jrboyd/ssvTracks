@@ -16,13 +16,14 @@ assemble_tracks = function(plot_list, query_gr, rel_heights = rep(1, length(plot
     if(as.character(strand(query_gr)) == "-") xlim = rev(xlim)
     for(i in seq(1, length(plot_list))){
       plot_list[[i]] = plot_list[[i]] +
-        labs(x = "") +
         coord_cartesian(xlim = xlim)
     }
     # remove x-axis labels from all plots but final
     if(length(plot_list) > 1){
       for(i in seq(1, length(plot_list) - 1)){
-        plot_list[[i]] = plot_list[[i]] + labs(x = "")
+        plot_list[[i]] = plot_list[[i]] +
+          labs(x = "") +
+          theme(axis.text.x = element_blank())
       }
     }
     # add axis labels to final plot
