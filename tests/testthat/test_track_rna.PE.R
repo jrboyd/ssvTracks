@@ -1,4 +1,4 @@
-testthat::context("track_rna")
+testthat::context("track_rna.PE")
 library(ssvTracks)
 library(testthat)
 
