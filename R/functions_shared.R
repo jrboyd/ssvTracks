@@ -69,3 +69,9 @@
   }
   show_color
 }
+
+.get_group_vars = function(color_VAR, fill_VAR, facet_VAR){
+  cn = unique(c(color_VAR, fill_VAR, facet_VAR))
+  cn = setdiff(cn, c(DEF_COLOR_, DEF_FILL_))
+  cn
+}

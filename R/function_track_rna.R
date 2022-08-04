@@ -76,8 +76,28 @@ DEF_FILL_ = "default_fill__"
         sample = names(signal_files)
       )
     }
-
   }
+
+  #### check color and fill  ####
+  color_VAR = .check_attribute(
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  signal_files = .check_dt_for_attribute(
+    target_dt = signal_files,
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  fill_VAR = .check_attribute(
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+  signal_files = .check_dt_for_attribute(
+    target_dt = signal_files,
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+
   if(is.null(target_strand)){
     target_strand = as.character(strand(query_gr))
   }
@@ -88,6 +108,8 @@ DEF_FILL_ = "default_fill__"
   args$signal_files = signal_files
   args$nwin = nwin
   args$sum_FUN = sum_FUN
+  args$color_VAR = color_VAR
+  args$fill_VAR = fill_VAR
   args
 }
 
@@ -168,46 +190,25 @@ DEF_FILL_ = "default_fill__"
     }
   }
 
-  #### color and fill  ####
-  #default color and fill attribute variable
-  #determine if color or fill get shown
-  #enforce proper color and fill variables in bw_dt.raw
-  color_VAR = .check_attribute(
-    ATTRIB_VAR = color_VAR,
-    DEFAULT_VALUE = DEF_COLOR_
-  )
+  #### show color and fill  ####
   show_color = .check_show_aes(
     ATTRIB_VAR = color_VAR,
     DEFAULT_VALUE = DEF_COLOR_
-  )
-  .check_attribute
-  bw_dt.raw = .check_dt_for_attribute(
-    target_dt = bw_dt.raw,
-    ATTRIB_VAR = color_VAR,
-    DEFAULT_VALUE = DEF_COLOR_
-  )
-
-  fill_VAR = .check_attribute(
-    ATTRIB_VAR = fill_VAR,
-    DEFAULT_VALUE = DEF_FILL_
   )
   show_fill = .check_show_aes(
     ATTRIB_VAR = fill_VAR,
     DEFAULT_VALUE = DEF_FILL_
   )
-  bw_dt.raw = .check_dt_for_attribute(
-    target_dt = bw_dt.raw,
-    ATTRIB_VAR = fill_VAR,
-    DEFAULT_VALUE = DEF_FILL_
-  )
 
   ####  ####
-
-  cn = unique(c(color_VAR, fill_VAR, facet_VAR))
-  cn = setdiff(cn, c(DEF_COLOR_, DEF_FILL_))
+  group_vars = .get_group_vars(
+    color_VAR = color_VAR,
+    fill_VAR = fill_VAR,
+    facet_VAR = facet_VAR
+  )
 
   bw_dt = bw_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "x", "start", "end")))]
-  bw_dt$sample = apply(bw_dt[, cn, with = FALSE], 1, paste, collapse = " ")
+  bw_dt$sample = apply(bw_dt[, group_vars, with = FALSE], 1, paste, collapse = " ")
   bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
   bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
 
@@ -322,9 +323,15 @@ DEF_FILL_ = "default_fill__"
     )
   }
 
+  group_vars = .get_group_vars(
+    color_VAR = color_VAR,
+    fill_VAR = fill_VAR,
+    facet_VAR = facet_VAR
+  )
+
   if(show_splice & !is.null(splice_dt.raw)){
     splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end")))]
-    splice_dt$sample = apply(splice_dt[, cn, with = FALSE], 1, paste, collapse = " ")
+    splice_dt$sample = apply(splice_dt[, group_vars, with = FALSE], 1, paste, collapse = " ")
     splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
     splice_dt$sample = factor(splice_dt$sample, levels = unique(splice_dt$sample))
   }else{
