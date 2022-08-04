@@ -37,3 +37,35 @@
     stop("query_gr must be a single region")
   }
 }
+
+.check_attribute = function(ATTRIB_VAR, DEFAULT_VALUE){
+  if(is.null(ATTRIB_VAR)){
+    ATTRIB_VAR = DEFAULT_VALUE
+  }
+  ATTRIB_VAR
+}
+
+
+.check_dt_for_attribute = function(
+    target_dt,
+    ATTRIB_VAR,
+    DEFAULT_VALUE){
+  if(is.null(target_dt[[ATTRIB_VAR]])){
+    if(ATTRIB_VAR == DEFAULT_VALUE){
+      target_dt[[ATTRIB_VAR]] = rep("", nrow(target_dt))
+    }else{
+      target_dt[[ATTRIB_VAR]] = target_dt$sample
+    }
+  }
+  target_dt
+}
+
+.check_show_aes = function(ATTRIB_VAR, DEFAULT_VALUE){
+  #determine if color or fill get shown
+  if(ATTRIB_VAR == DEFAULT_VALUE){
+    show_color = FALSE
+  }else{
+    show_color = TRUE
+  }
+  show_color
+}

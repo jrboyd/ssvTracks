@@ -1,3 +1,6 @@
+DEF_COLOR_ = "default_color__"
+DEF_FILL_ = "default_fill__"
+
 .track_all_common_before_fetch = function(
     signal_files,
     query_gr,
@@ -88,36 +91,6 @@
   args
 }
 
-.track_all_common_before_fetch = function(
-    signal_files,
-    query_gr,
-    fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
-    flip_x = NULL,
-    nwin = 3000,
-    nspline = 1,
-    fill_outline_color = NA,
-    fill_alpha = 1,
-    color_alpha = 1,
-    y_label = "signal",
-    x_scale = c("bp", "kbp", "Mbp")[2],
-    floor_value = 0,
-    ceiling_value = Inf,
-    color_VAR = NULL,
-    color_mapping = NULL,
-    fill_VAR = "sample",
-    fill_mapping = NULL,
-    facet_VAR = "sample",
-    legend.position = "right",
-    names_on_right = TRUE,
-    target_strand = NULL,
-    flip_strand = FALSE,
-    return_data = FALSE,
-    ...){
-
-}
-
 #' do most error catching and set dynamic args
 #' returns modified copy of args
 .track_rna_common_before_fetch = function(
@@ -155,7 +128,8 @@
   args2
 }
 
-.track_rna_common_after_fetch = function(
+
+.track_all_common_after_fetch = function(
     bw_dt.raw,
     splice_dt.raw,
     signal_files,
@@ -180,13 +154,10 @@
     fill_mapping = NULL,
     legend.position = "right",
     names_on_right = TRUE,
-    show_splice = TRUE,
-    min_splice_count = 10,
     target_strand = NULL,
     flip_strand = FALSE,
     return_data = FALSE,
     ...){
-
   if(!is.null(bw_dt.raw$mapped_reads)){
     bw_dt.raw[, y_raw := y]
     bw_dt.raw[, y := y_raw / mapped_reads * 1e6]
@@ -197,49 +168,41 @@
     }
   }
 
-  #### TODO fix bloody mess ####
-  DEF_COLOR_ = "default_color__"
-  if(is.null(color_VAR)){
-    color_VAR = DEF_COLOR_
-    show_color = FALSE
-  }else{
-    show_color = TRUE
-  }
-  if(is.null(bw_dt.raw[[color_VAR]])){
-    if(color_VAR == DEF_COLOR_){
-      bw_dt.raw[[color_VAR]] = rep("", nrow(bw_dt.raw))
-      if(show_splice){
-        splice_dt.raw[[color_VAR]] = rep("", nrow(splice_dt.raw))
-      }
-    }else{
-      bw_dt.raw[[color_VAR]] = bw_dt.raw$sample
-      if(show_splice){
-        splice_dt.raw[[color_VAR]] = splice_dt.raw$sample
-      }
-    }
-  }
+  #### color and fill  ####
+  #default color and fill attribute variable
+  #determine if color or fill get shown
+  #enforce proper color and fill variables in bw_dt.raw
+  color_VAR = .check_attribute(
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  show_color = .check_show_aes(
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  .check_attribute
+  bw_dt.raw = .check_dt_for_attribute(
+    target_dt = bw_dt.raw,
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
 
-  DEF_FILL_ = "default_fill__"
-  if(is.null(fill_VAR)){
-    fill_VAR = DEF_FILL_
-    show_fill = FALSE
-  }else{
-    show_fill = TRUE
-  }
-  if(is.null(bw_dt.raw[[fill_VAR]])){
-    if(fill_VAR == DEF_FILL_){
-      bw_dt.raw[[fill_VAR]] = rep("", nrow(bw_dt.raw))
-      if(show_splice){
-        splice_dt.raw[[fill_VAR]] = rep("", nrow(splice_dt.raw))
-      }
-    }else{
-      bw_dt.raw[[fill_VAR]] = bw_dt.raw$sample
-      if(show_splice){
-        splice_dt.raw[[fill_VAR]] = splice_dt.raw$sample
-      }
-    }
-  }
+  fill_VAR = .check_attribute(
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+  show_fill = .check_show_aes(
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+  bw_dt.raw = .check_dt_for_attribute(
+    target_dt = bw_dt.raw,
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+
   ####  ####
+
   cn = unique(c(color_VAR, fill_VAR, facet_VAR))
   cn = setdiff(cn, c(DEF_COLOR_, DEF_FILL_))
 
@@ -248,31 +211,17 @@
   bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
   bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
 
-  if(show_splice & !is.null(splice_dt.raw)){
-    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end")))]
-    splice_dt$sample = apply(splice_dt[, cn, with = FALSE], 1, paste, collapse = " ")
-    splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
-    splice_dt$sample = factor(splice_dt$sample, levels = unique(splice_dt$sample))
-  }else{
-    splice_dt = NULL
-  }
-
   if(nspline > 1){
     bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = c("sample"))
   }
-  #### SOMETHING WRONG WITH FLIP_X and x calc of bw_dt
-  # if(flip_x){
-  #   bw_dt[, x := max(end) - (max(end) - min(start))*x]
-  # }else{
-  #   bw_dt[, x := min(start) + (max(end) - min(start))*x]
-  # }
+
   bw_dt[, x := (end + start)/2]
 
   bw_dt[y > ceiling_value, y := ceiling_value]
   bw_dt[y < floor_value, y := floor_value]
 
   if(return_data){
-    return(list(reads = bw_dt, splices = splice_dt))
+    return(list(reads = bw_dt))
   }
 
   p_rna = ggplot(bw_dt)
@@ -303,13 +252,6 @@
       scale_fill_manual(values = fill_mapping)
   }
 
-  if(show_splice){
-    p_rna =   p_rna + ggbio::geom_arch(
-      data = splice_dt[y >= min_splice_count], aes(x = start, xend = end, height = y),
-      color = "black"
-    )
-  }
-
   facet_switch = if(names_on_right){
     NULL
   }else{
@@ -325,6 +267,85 @@
   p_rna = .apply_x_scale(p_rna, x_scale, as.character(seqnames(query_gr)))
   p_rna = .apply_x_lim(p_rna, query_gr, flip_x)
   p_rna
+}
+
+
+.track_rna_common_after_fetch = function(
+    bw_dt.raw,
+    splice_dt.raw,
+    signal_files,
+    query_gr,
+    fetch_fun = seqsetvis::ssvFetchBam,
+    win_FUN = c("mean", "max")[2],
+    sum_FUN = NULL,
+    flip_x = NULL,
+    nwin = 3000,
+    nspline = 1,
+    fill_outline_color = NA,
+    fill_alpha = 1,
+    color_alpha = 1,
+    y_label = "signal",
+    x_scale = c("bp", "kbp", "Mbp")[2],
+    floor_value = 0,
+    ceiling_value = Inf,
+    color_VAR = NULL,
+    color_mapping = NULL,
+    fill_VAR = "sample",
+    facet_VAR = "sample",
+    fill_mapping = NULL,
+    legend.position = "right",
+    names_on_right = TRUE,
+    target_strand = NULL,
+    flip_strand = FALSE,
+    return_data = FALSE,
+    show_splice = TRUE,
+    min_splice_count = 10,
+    ...){
+  env = as.list(sys.frame(sys.nframe()))
+  args = c(as.list(env), list(...))
+  pre_out = do.call(.track_all_common_after_fetch, args = args)
+
+  if(show_splice){
+    #### color and fill  ####
+    #default color and fill attribute variable
+    #determine if color or fill get shown
+    #enforce proper color and fill variables in bw_dt.raw
+    splice_dt.raw = .check_dt_for_attribute(
+      target_dt = splice_dt.raw,
+      ATTRIB_VAR = color_VAR,
+      DEFAULT_VALUE = DEF_COLOR_
+    )
+    splice_dt.raw = .check_dt_for_attribute(
+      target_dt = splice_dt.raw,
+      ATTRIB_VAR = fill_VAR,
+      DEFAULT_VALUE = DEF_FILL_
+    )
+  }
+
+  if(show_splice & !is.null(splice_dt.raw)){
+    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end")))]
+    splice_dt$sample = apply(splice_dt[, cn, with = FALSE], 1, paste, collapse = " ")
+    splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
+    splice_dt$sample = factor(splice_dt$sample, levels = unique(splice_dt$sample))
+  }else{
+    splice_dt = NULL
+  }
+
+  if(return_data){
+    return(c(pre_out, list(splice = splice_dt)))
+  }else{
+    p_rna = pre_out
+  }
+
+  if(show_splice){
+    p_rna =   p_rna + ggbio::geom_arch(
+      data = splice_dt[y >= min_splice_count], aes(x = start, xend = end, height = y),
+      color = "black"
+    )
+  }
+
+
+
 }
 
 #' track_rna.SE
@@ -420,6 +441,8 @@ track_rna.SE = function(
       splice_dt.raw = splice_dt.raw[strand == target_strand]
     }
     setnames(splice_dt.raw, "N", "y")
+  }else{
+    splice_dt.raw = NULL
   }
 
   args2$bw_dt.raw = bw_dt.raw
