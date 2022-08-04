@@ -10,12 +10,63 @@ track_gene_transcripts(
   query_gr = NULL,
   transcript_subset = NULL,
   flip_x = NULL,
-  x_scale = c("bp", "kbp", "Mbp")[2]
+  x_scale = c("bp", "kbp", "Mbp")[2],
+  intron_thickness = 0,
+  exon_height = 0.8,
+  exon_color = "black",
+  intron_color = exon_color,
+  highlight_transcripts = NULL,
+  highlight_color = "red",
+  show_tss = FALSE
 )
 }
 \arguments{
-\item{x_scale}{}
+\item{ref}{Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file inlcuding this information.}
+
+\item{sel_gene_name}{The gene to plot transcripts for.  Must be present as "gene_name" entry in ref.}
+
+\item{query_gr}{Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10% wider than all transcripts plotted.}
+
+\item{transcript_subset}{Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all trancripts.}
+
+\item{flip_x}{If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.}
+
+\item{x_scale}{One of "bp", "kbp", or "Mbp".  Scales x-axis labels accordingly.}
+
+\item{intron_thickness}{Line thickness for introns.  0 disables intron drawing. Default is 0.}
+
+\item{exon_height}{Relative height of exons. 1 fills entire row. Default is 0.8.}
+
+\item{exon_color}{color for exon lines and fill. Default is "black"}
+
+\item{intron_color}{color for intron lines. Default is the same as exon_color.}
+
+\item{highlight_transcripts}{transcript_id items to highlight. Must be present. Default of NULL is no highlighting.}
+
+\item{highlight_color}{line color for highlighted transcripts. Dfault is "red".}
+
+\item{show_tss}{If TRUE, TSS is indicated by a leading in-line arrow. Default is FALSE.}
+}
+\value{
+A ggplot in which exon structure of transcripts is shown.
 }
 \description{
 track_gene_transcripts
+}
+\examples{
+gtf_file = system.file(package = "ssvTracks", "extdata/gencode.v35.annotation.IKZF1.gtf", mustWork = TRUE)
+ref_gr = rtracklayer::import.gff(gtf_file)
+
+track_gene_transcripts(ref_gr,
+  sel_gene_name = "IKZF1",
+  intron_thickness = 2,
+  exon_height = .8,
+  show_tss = TRUE)
+
+track_gene_transcripts(ref_gr,
+  sel_gene_name = "IKZF1",
+  intron_thickness = 2,
+  highlight_transcripts = c("ENST00000642219.1"),
+  highlight_color = "darkorange",
+  show_tss = TRUE)
 }

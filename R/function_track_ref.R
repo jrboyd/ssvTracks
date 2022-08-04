@@ -130,22 +130,21 @@ track_gene_reference = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
 
 #' track_gene_transcripts
 #'
-#' @param ref
-#' @param sel_gene_name
-#' @param query_gr
-#' @param transcript_subset
-#' @param flip_x
-#' @param x_scale
-#' @param intron_thickness
-#' @param exon_height
-#' @param exon_color
-#' @param intron_color
-#' @param highlight_transcripts
-#' @param highlight_color
-#' @param highlight_fill
-#' @param show_tss
+#' @param ref Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file inlcuding this information.
+#' @param sel_gene_name The gene to plot transcripts for.  Must be present as "gene_name" entry in ref.
+#' @param query_gr Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10% wider than all transcripts plotted.
+#' @param transcript_subset Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all trancripts.
+#' @param flip_x If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.
+#' @param x_scale One of "bp", "kbp", or "Mbp".  Scales x-axis labels accordingly.
+#' @param intron_thickness Line thickness for introns.  0 disables intron drawing. Default is 0.
+#' @param exon_height Relative height of exons. 1 fills entire row. Default is 0.8.
+#' @param exon_color color for exon lines and fill. Default is "black"
+#' @param intron_color color for intron lines. Default is the same as exon_color.
+#' @param highlight_transcripts transcript_id items to highlight. Must be present. Default of NULL is no highlighting.
+#' @param highlight_color line color for highlighted transcripts. Dfault is "red".
+#' @param show_tss If TRUE, TSS is indicated by a leading in-line arrow. Default is FALSE.
 #'
-#' @return
+#' @return A ggplot in which exon structure of transcripts is shown.
 #' @export
 #'
 #' @examples
@@ -176,7 +175,6 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
                                   intron_color = exon_color,
                                   highlight_transcripts = NULL,
                                   highlight_color = "red",
-                                  highlight_fill = "red",
                                   show_tss = FALSE
 
 ){
@@ -195,7 +193,17 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
 
   ex_dt = data.table::as.data.table(subset(ref, gene_name == sel_gene_name))
 
-  if(is.null(flip_x)) flip_x = ex_dt$strand[1] == "-"
+  if(nrow(ex_dt[, .N, list(strand, seqnames)]) > 1){
+    stop(sel_gene_name, " has mixed strand and/or seqnames in reference.  Specify transcript_subset such that only one strand and seqnames is present.")
+  }
+
+  if(is.null(query_gr)){
+    query_gr = range(GenomicRanges::GRanges(ex_dt))
+    query_gr = GenomicRanges::resize(query_gr, 1.1 * GenomicRanges::width(query_gr), fix = "center")
+  }
+
+  stopifnot(length(query_gr) == 1)
+  if(is.null(flip_x)) flip_x = as.character(strand(query_gr)) == "-"
 
   if(!is.null(transcript_subset)){
     ex_dt = subset(ex_dt, transcript_id %in% transcript_subset)
@@ -206,21 +214,12 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
     if(flip_x) transcript_lev = rev(transcript_lev)
   }
 
-  if(nrow(ex_dt[, .N, list(strand, seqnames)]) > 1){
-    stop(sel_gene_name, " has mixed strand and/or seqnames in reference.  Specify transcript_subset such that only one strand and seqnames is present.")
-  }
-
   ex_dt = ex_dt[, list(seqnames, start, end, gene_id, transcript_id, exon_id, gene_name, strand)]
   ex_dt$transcript_id = factor(ex_dt$transcript_id, levels = transcript_lev)
 
   pad = (1-exon_height)/2
   ex_dt[, ymin := as.numeric(transcript_id)-1+pad]
   ex_dt[, ymax := as.numeric(transcript_id)-pad]
-
-  if(is.null(query_gr)){
-    query_gr = range(GenomicRanges::GRanges(ex_dt))
-    query_gr = GenomicRanges::resize(query_gr, 1.1 * GenomicRanges::width(query_gr), fix = "center")
-  }
 
   ex_dt$color = exon_color
   if(!is.null(highlight_transcripts)){
