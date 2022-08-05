@@ -207,6 +207,7 @@ DEF_FILL_ = "default_fill__"
   }
 
   p_rna = ggplot(bw_dt)
+
   if(show_color){
     if(is.null(color_mapping)){
       color_mapping = seqsetvis::safeBrew(bw_dt[[color_VAR]])
@@ -214,10 +215,23 @@ DEF_FILL_ = "default_fill__"
         color_mapping["input"] = "gray"
       }
     }
-    stopifnot(all(bw_dt[[color_VAR]] %in% names(color_mapping)))
+    if(!all(bw_dt[[color_VAR]] %in% names(color_mapping))){
+      if(length(color_mapping) == 1){
+        color_mapping = rep(color_mapping, length(unique(bw_dt[[color_VAR]])))
+        if(is.factor(bw_dt[[color_VAR]])){
+          names(color_mapping) = levels(bw_dt[[color_VAR]])
+        }else{
+          names(color_mapping) = unique(bw_dt[[color_VAR]])
+        }
+      }else{
+        stop("Missing values from color_mapping for color_VAR \"", color_VAR, "\":\n",
+             paste(setdiff(unique(bw_dt[[color_VAR]]), names(color_mapping)), collapse = ", "))
+      }
+    }
 
+    path_show.legend = length(unique(color_mapping)) > 1
     p_rna = p_rna +
-      geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha) +
+      geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha, show.legend = path_show.legend) +
       scale_color_manual(values = color_mapping)
   }
   if(show_fill){
@@ -227,10 +241,23 @@ DEF_FILL_ = "default_fill__"
         fill_mapping["input"] = "gray"
       }
     }
-    stopifnot(all(bw_dt[[fill_VAR]] %in% names(fill_mapping)))
+    if(!all(bw_dt[[fill_VAR]] %in% names(fill_mapping))){
+      if(length(fill_mapping) == 1){
+        fill_mapping = rep(fill_mapping, length(unique(bw_dt[[fill_VAR]])))
+        if(is.factor(bw_dt[[fill_VAR]])){
+          names(fill_mapping) = levels(bw_dt[[fill_VAR]])
+        }else{
+          names(fill_mapping) = unique(bw_dt[[fill_VAR]])
+        }
+      }else{
+        stop("Missing values from fill_mapping for fill_VAR \"", fill_VAR, "\":\n",
+             paste(setdiff(unique(bw_dt[[fill_VAR]]), names(fill_mapping)), collapse = ", "))
+      }
+    }
 
+    ribbon_show.legend = length(unique(fill_mapping)) > 1
     p_rna = p_rna +
-      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha) +
+      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha, show.legend = ribbon_show.legend) +
       scale_fill_manual(values = fill_mapping)
   }
 

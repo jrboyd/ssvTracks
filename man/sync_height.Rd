@@ -9,6 +9,40 @@ sync_height(grob_list)
 \arguments{
 \item{grob_list}{list containing ggplot and/or grobs}
 }
+\value{
+list of grobs with hortizontal margins set to equal sizes to allow stacking.
+}
 \description{
 sync_height
+}
+\examples{
+gtf_file = system.file(package = "ssvTracks", "extdata/ESR1_exons.gtf", mustWork = TRUE)
+ref_gr = rtracklayer::import.gff(gtf_file)
+query_gr = range(ref_gr)
+
+p_ref = track_gene_transcripts(ref_gr,
+  sel_gene_name = "ESR1",
+  intron_thickness = 2,
+  exon_height = .8,
+  show_tss = TRUE)
+
+bam_files = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "^M.+RNA.+bam$")
+bam_files = bam_files[!grepl("_wt_", bam_files) & !grepl("_RUNX1-ko1_", bam_files)]
+bam_files_df = data.frame(
+     file = bam_files,
+     sample = sub("_.+", "", basename(bam_files)))
+p_rna = track_rna.SE(bam_files_df, query_gr = query_gr, fill_mapping = "black")
+
+query_gr_small = resize(query_gr, 5e4)
+xlim_small = c(start(query_gr_small), end(query_gr_small))
+glist = sync_height(list(
+  p_rna,
+  p_rna +
+    coord_cartesian(xlim = xlim_small) +
+    labs(title = "zoom in") +
+    theme(plot.title = element_text(size = 60))
+))
+
+#this isn't a great example, but notice the plot on the left leaves space for the large title on the right.
+cowplot::plot_grid(plotlist = glist, nrow = 1)
 }

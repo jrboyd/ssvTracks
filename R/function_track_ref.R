@@ -148,19 +148,19 @@ track_gene_reference = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
 #' @export
 #'
 #' @examples
-#' gtf_file = system.file(package = "ssvTracks", "extdata/gencode.v35.annotation.IKZF1.gtf", mustWork = TRUE)
+#' gtf_file = system.file(package = "ssvTracks", "extdata/ESR1_exons.gtf", mustWork = TRUE)
 #' ref_gr = rtracklayer::import.gff(gtf_file)
 #'
 #' track_gene_transcripts(ref_gr,
-#'   sel_gene_name = "IKZF1",
+#'   sel_gene_name = "ESR1",
 #'   intron_thickness = 2,
 #'   exon_height = .8,
 #'   show_tss = TRUE)
 #'
 #' track_gene_transcripts(ref_gr,
-#'   sel_gene_name = "IKZF1",
+#'   sel_gene_name = "ESR1",
 #'   intron_thickness = 2,
-#'   highlight_transcripts = c("ENST00000642219.1"),
+#'   highlight_transcripts = c("ENST00000338799.9"),
 #'   highlight_color = "darkorange",
 #'   show_tss = TRUE)
 track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
