@@ -32,13 +32,37 @@ track_chip(
 \arguments{
 \item{signal_files}{Character or data.frame. Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame}
 
-\item{query_gr}{GRanges. Defines regions to be fetched and plotted.}
-
 \item{fetch_fun}{An ssvFetc* function from seqsetvis. ssvFetchBam, ssvFetchBamPE or ssvFetchBigwig are likely choices.}
 
 \item{summary_FUN}{Either a function or character "mean" or "max".  If a custom function it must follow the form of weighted.mean() and accept 2 arguments, values and weights.}
 
-\item{...}{}
+\item{nwin}{Numeric. Higher numbers increase resolution but increase plotting time and size of .pdf files.}
+
+\item{nspline}{Numeric. If higher than 1, splines will be used to interpolate and smooth between windows.}
+
+\item{fill_outline_color}{Character. Color applied to outline for geom_ribbon used for filled tracks.}
+
+\item{y_label}{Character. Label for y-axis.}
+
+\item{floor_value}{Numeric.  Values below floor will be increased to floor. Default is 0.}
+
+\item{ceiling_value}{Numeric. Values above ceiling will be decreased to ceiling. Default is Inf.}
+
+\item{color_VAR}{Character. Color variable if supplying signal_files as data.frame. Default of NULL disables colored line.}
+
+\item{color_mapping}{Named character. Maps values of color_VAR to valid colors.}
+
+\item{fill_VAR}{Character. Fill variable if supplying signal_files as data.frame. Default of "sample" results in 1 fill color per file.}
+
+\item{fill_mapping}{Named character. Maps values of fill_VAR to valid colors.}
+
+\item{facet_VAR}{Character.  Files that share a facet value will appear in the same track row. Default of "sample" results in 1 file per row.}
+
+\item{legend.position}{Charactter. Position for legend, see ggplot2::theme.  Most likely "right", "bottom", or "none".}
+
+\item{names_on_right}{logical. If TRUE (default) facet/row names appear on the right. If FALSE facet/row names appear on the left.}
+
+\item{...}{Currently not used.}
 }
 \description{
 track_chip

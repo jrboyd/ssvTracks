@@ -6,7 +6,7 @@
 \usage{
 ssvFetchBamPE.RNA(
   file_paths,
-  qgr,
+  query_gr,
   win_size = 50,
   target_strand = "both",
   splice_strategy = "ignore",
@@ -21,7 +21,34 @@ ssvFetchBamPE.RNA(
 )
 }
 \arguments{
-\item{n_region_splits}{}
+\item{file_paths}{character vector of file_paths to load from. Alternatively, file_paths can be a data.frame or data.table whose first column is a character vector of paths and additial columns will be used as metadata.}
+
+\item{query_gr}{Set of GRanges to query. For valid results the width of each interval should be identical and evenly divisible by win_size.}
+
+\item{win_size}{The window size that evenly divides widths in qgr.}
+
+\item{target_strand}{character. if one of "+" or "-", reads are filtered to match. ignored if any other value.}
+
+\item{splice_strategy}{character, one of c("none", "ignore", "add", "only", "splice_count"). Default is "none" and spliced alignment are asssumed not present. fragLen must be NA for any other value to be valid. "ignore" will not count spliced regions. add" counts spliced regions along with others, "only" will only count spliced regions and ignore others.}
+
+\item{return_data.table}{logical. If TRUE the internal data.table is returned instead of GRanges. Default is FALSE.}
+
+\item{win_method}{character. one of c("sample", "summary"). "sample" selects values at intervals and "summary" applies a weight mean function to all values in window.}
+
+\item{max_dupes}{numeric >= 1. duplicate reads by strandd start position over this number are removed, Default is Inf.}
+
+\item{flip_strand}{logical. if TRUE strands are flipped.}
+
+\item{sum_reads}{logical. If true R1 and R2 reads are added together. If FALSE they are returned separately, identified by the "read" attribute.}
+
+\item{n_cores}{integer number of cores to use. Uses mc.cores option if not supplied.}
+
+\item{force_skip_centerFix}{boolean, if TRUE all query ranges will be used "as is". This is already the case by default if win_method == "summary" but may have applications where win_method == "sample".}
+
+\item{n_region_splits}{integer number of splits to apply to qgr. The query GRanges will be split into this many roughly equal parts for increased parallelization. Default is 1, no split.}
+}
+\value{
+A tidy formatted GRanges (or data.table if specified) containing fetched values.
 }
 \description{
 ssvFetchBamPE.RNA

@@ -1,31 +1,7 @@
 #' track_rna.PE
 #'
 #'
-#' @param signal_files
-#' @param query_gr
-#' @param flip_x
-#' @param nwin
-#' @param nspline
-#' @param fill_outline_color
-#' @param fill_alpha
-#' @param color_alpha
-#' @param y_label
-#' @param x_scale
-#' @param floor_value
-#' @param ceiling_value
-#' @param color_VAR
-#' @param color_mapping
-#' @param fill_VAR
-#' @param fill_mapping
-#' @param facet_VAR
-#' @param legend.position
-#' @param names_on_right
-#' @param show_splice
-#' @param min_splice_count
-#' @param target_strand
-#' @param flip_strand
-#' @param return_data
-#' @param ...
+#' @template ssvTracks_signal_params
 #'
 #' @return
 #' @export

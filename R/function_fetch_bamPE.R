@@ -1,26 +1,26 @@
 #' ssvFetchBamPE.RNA
 #'
-#' @param file_paths
-#' @param qgr
-#' @param win_size
-#' @param target_strand
-#' @param splice_strategy
-#' @param return_data.table
-#' @param win_method
-#' @param max_dupes
-#' @param flip_strand
-#' @param sum_reads
-#' @param n_cores
-#' @param force_skip_centerFix
-#' @param n_region_splits
+#' @param file_paths character vector of file_paths to load from. Alternatively, file_paths can be a data.frame or data.table whose first column is a character vector of paths and additial columns will be used as metadata.
+#' @param query_gr Set of GRanges to query. For valid results the width of each interval should be identical and evenly divisible by win_size.
+#' @param win_size The window size that evenly divides widths in qgr.
+#' @param target_strand character. if one of "+" or "-", reads are filtered to match. ignored if any other value.
+#' @param splice_strategy character, one of c("none", "ignore", "add", "only", "splice_count"). Default is "none" and spliced alignment are asssumed not present. fragLen must be NA for any other value to be valid. "ignore" will not count spliced regions. add" counts spliced regions along with others, "only" will only count spliced regions and ignore others.
+#' @param return_data.table logical. If TRUE the internal data.table is returned instead of GRanges. Default is FALSE.
+#' @param win_method 	character. one of c("sample", "summary"). "sample" selects values at intervals and "summary" applies a weight mean function to all values in window.
+#' @param max_dupes numeric >= 1. duplicate reads by strandd start position over this number are removed, Default is Inf.
+#' @param flip_strand logical. if TRUE strands are flipped.
+#' @param sum_reads logical. If true R1 and R2 reads are added together. If FALSE they are returned separately, identified by the "read" attribute.
+#' @param n_cores integer number of cores to use. Uses mc.cores option if not supplied.
+#' @param force_skip_centerFix boolean, if TRUE all query ranges will be used "as is". This is already the case by default if win_method == "summary" but may have applications where win_method == "sample".
+#' @param n_region_splits integer number of splits to apply to qgr. The query GRanges will be split into this many roughly equal parts for increased parallelization. Default is 1, no split.
 #'
-#' @return
+#' @return A tidy formatted GRanges (or data.table if specified) containing fetched values.
 #' @export
 #'
 #' @examples
 ssvFetchBamPE.RNA = function(
     file_paths,
-    qgr,
+    query_gr,
     win_size = 50,
     target_strand = "both",
     splice_strategy = "ignore",
@@ -33,10 +33,10 @@ ssvFetchBamPE.RNA = function(
     force_skip_centerFix = TRUE,
     n_region_splits = 1){
   y = cn = NULL #reserve bindings
-  strand(qgr) = "*"
+  strand(query_gr) = "*"
   bam_r1 = seqsetvis::ssvFetchBam(
     file_paths = file_paths,
-    qgr = qgr,
+    qgr = query_gr,
     target_strand = target_strand,
     splice_strategy = splice_strategy,
     return_data.table = TRUE,
@@ -55,7 +55,7 @@ ssvFetchBamPE.RNA = function(
   bam_r2 =
     seqsetvis::ssvFetchBam(
       file_paths = file_paths,
-      qgr = qgr,
+      qgr = query_gr,
       target_strand = target_strand,
       splice_strategy = splice_strategy,
       return_data.table = TRUE,
@@ -86,25 +86,26 @@ ssvFetchBamPE.RNA = function(
 
 #' ssvFetchBamPE.RNA_splice
 #'
-#' @param file_paths
-#' @param qgr
-#' @param win_size
-#' @param target_strand
-#' @param return_data.table
-#' @param win_method
-#' @param max_dupes
-#' @param flip_strand
-#' @param n_cores
-#' @param force_skip_centerFix
-#' @param n_region_splits
+#' @param file_paths character vector of file_paths to load from. Alternatively, file_paths can be a data.frame or data.table whose first column is a character vector of paths and additial columns will be used as metadata.
+#' @param query_gr Set of GRanges to query. For valid results the width of each interval should be identical and evenly divisible by win_size.
+#' @param win_size The window size that evenly divides widths in qgr.
+#' @param target_strand character. if one of "+" or "-", reads are filtered to match. ignored if any other value.
+#' @param return_data.table logical. If TRUE the internal data.table is returned instead of GRanges. Default is FALSE.
+#' @param win_method 	character. one of c("sample", "summary"). "sample" selects values at intervals and "summary" applies a weight mean function to all values in window.
+#' @param max_dupes numeric >= 1. duplicate reads by strandd start position over this number are removed, Default is Inf.
+#' @param flip_strand logical. if TRUE strands are flipped.
+#' @param sum_reads logical. If true R1 and R2 reads are added together. If FALSE they are returned separately, identified by the "read" attribute.
+#' @param n_cores integer number of cores to use. Uses mc.cores option if not supplied.
+#' @param force_skip_centerFix boolean, if TRUE all query ranges will be used "as is". This is already the case by default if win_method == "summary" but may have applications where win_method == "sample".
+#' @param n_region_splits integer number of splits to apply to qgr. The query GRanges will be split into this many roughly equal parts for increased parallelization. Default is 1, no split.
 #'
-#' @return
+#' @return A tidy formatted GRanges (or data.table if specified) containing fetched values.
 #' @export
 #'
 #' @examples
 ssvFetchBamPE.RNA_splice = function(
     file_paths,
-    qgr, win_size = 50,
+    query_gr, win_size = 50,
     target_strand = "both",
     return_data.table = FALSE,
     win_method = "sample",

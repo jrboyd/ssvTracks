@@ -1,32 +1,6 @@
 #' track_rna.SE
 #'
-#' @param signal_files
-#' @param query_gr
-#' @param fetch_fun
-#' @param summary_FUN
-#' @param flip_x
-#' @param nwin
-#' @param nspline
-#' @param fill_outline_color
-#' @param fill_alpha
-#' @param color_alpha
-#' @param y_label
-#' @param x_scale
-#' @param floor_value
-#' @param ceiling_value
-#' @param color_VAR
-#' @param color_mapping
-#' @param fill_VAR
-#' @param fill_mapping
-#' @param facet_VAR
-#' @param legend.position
-#' @param names_on_right
-#' @param show_splice
-#' @param min_splice_count
-#' @param target_strand
-#' @param flip_strand logical. Should aligned strand be flipped relative to query_gr.  The vast majority of SE libraries are actually flip_strand, so default flip_strand is TRUE.
-#' @param return_data
-#' @param ...
+#' @template ssvTracks_signal_params
 #'
 #' @return
 #' @export
