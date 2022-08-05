@@ -11,7 +11,6 @@ track_features(
   sample_info_df.name_VAR = "sample",
   sample_info_df.color_VAR = NULL,
   sample_info_df.fill_VAR = "sample",
-  attrib = "cluster_id",
   pad = 0.1,
   flip_x = NULL,
   manual_levels = NULL,
@@ -22,8 +21,37 @@ track_features(
 )
 }
 \arguments{
-\item{manual_levels}{}
+\item{feature_grs}{List. Must contain GRanges.  To include meta data as color or fill, specify sample_info_df.}
+
+\item{sample_info_df.name_VAR}{Character. Default is "sample". Use for mapping sample_info to feature_grs. Values of sample_info_df for this attribute must be setequal to names of feature_grs.}
+
+\item{sample_info_df.color_VAR}{Character. Default is NULL (no color mapping). Use for mapping sample_info to color. Values of sample_info_df for this attribute must be setequal to names of color_mapping.}
+
+\item{sample_info_df.fill_VAR}{Character. Default is "sample". Use for mapping sample_info to fill Values of sample_info_df for this attribute must be setequal to names of fill_mapping.}
+
+\item{legend.position}{}
 }
 \description{
 track_features
+}
+\examples{
+peak_grs = seqsetvis::easyLoad_narrowPeak(peak_files)
+olaps = seqsetvis::ssvOverlapIntervalSets(peak_grs)
+query_gr = olaps[1]
+query_gr = resize(query_gr, 10e4, fix = "center")
+feature_grs = peak_grs
+
+
+
+
+
+track_features(peak_grs, query_gr)
+
+peak_grs.is_sig = lapply(peak_grs, function(x){
+  x$is_sig = x$pValue > 20
+  x
+})
+
+track_features(peak_grs.is_sig, query_gr, attrib = "is_sig")
+
 }

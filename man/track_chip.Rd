@@ -8,8 +8,7 @@ track_chip(
   signal_files,
   query_gr,
   fetch_fun = seqsetvis::ssvFetchBam,
-  win_FUN = c("mean", "max")[2],
-  sum_FUN = NULL,
+  summary_FUN = c("mean", "max")[2],
   flip_x = NULL,
   nwin = 3000,
   nspline = 1,
@@ -31,7 +30,13 @@ track_chip(
 )
 }
 \arguments{
-\item{signal_files}{Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame}
+\item{signal_files}{Character or data.frame. Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame}
+
+\item{query_gr}{GRanges. Defines regions to be fetched and plotted.}
+
+\item{fetch_fun}{An ssvFetc* function from seqsetvis. ssvFetchBam, ssvFetchBamPE or ssvFetchBigwig are likely choices.}
+
+\item{summary_FUN}{Either a function or character "mean" or "max".  If a custom function it must follow the form of weighted.mean() and accept 2 arguments, values and weights.}
 
 \item{...}{}
 }

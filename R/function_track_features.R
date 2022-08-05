@@ -1,24 +1,51 @@
 
 #' track_features
 #'
-#' @param feature_grs
+#'
+#' @param feature_grs List. Must contain GRanges.  To include meta data as color or fill, specify sample_info_df.
 #' @param query_gr
+#' @param sample_info_df
+#' @param sample_info_df.name_VAR Character. Default is "sample". Use for mapping sample_info to feature_grs. Values of sample_info_df for this attribute must be setequal to names of feature_grs.
+#' @param sample_info_df.color_VAR Character. Default is NULL (no color mapping). Use for mapping sample_info to color. Values of sample_info_df for this attribute must be setequal to names of color_mapping.
+#' @param sample_info_df.fill_VAR Character. Default is "sample". Use for mapping sample_info to fill Values of sample_info_df for this attribute must be setequal to names of fill_mapping.
 #' @param attrib
 #' @param pad
 #' @param flip_x
 #' @param manual_levels
+#' @param x_scale
+#' @param color_mapping
+#' @param fill_mapping
+#' @param legend.position
 #'
 #' @return
 #' @export
 #'
 #' @examples
+#' peak_grs = seqsetvis::easyLoad_narrowPeak(peak_files)
+#' olaps = seqsetvis::ssvOverlapIntervalSets(peak_grs)
+#' query_gr = olaps[1]
+#' query_gr = resize(query_gr, 10e4, fix = "center")
+#' feature_grs = peak_grs
+#'
+#'
+#'
+#'
+#'
+#' track_features(peak_grs, query_gr)
+#'
+#' peak_grs.is_sig = lapply(peak_grs, function(x){
+#'   x$is_sig = x$pValue > 20
+#'   x
+#' })
+#'
+#' track_features(peak_grs.is_sig, query_gr, attrib = "is_sig")
+#'
 track_features = function(feature_grs,
                           query_gr,
                           sample_info_df = NULL,
                           sample_info_df.name_VAR = "sample",
                           sample_info_df.color_VAR = NULL,
                           sample_info_df.fill_VAR = "sample",
-                          attrib = "cluster_id",
                           pad = .1,
                           flip_x = NULL,
                           manual_levels = NULL,
@@ -30,33 +57,33 @@ track_features = function(feature_grs,
   if(is(feature_grs, "GRangesList")) feature_grs = as.list(feature_grs)
   if(is.list(feature_grs)){
     for(i in seq_along(feature_grs)){
-      mcols(feature_grs[[i]])[[attrib]] = names(feature_grs)[i]
+      mcols(feature_grs[[i]])[[sample_info_df.name_VAR]] = names(feature_grs)[i]
     }
     if(is.null(manual_levels)) manual_levels = rev(names(feature_grs))
     feature_grs = unlist(GRangesList(feature_grs))
   }
   feature_grs.hit = subsetByOverlaps(feature_grs, query_gr, ignore.strand = TRUE)
-  if(!is.factor(mcols(feature_grs.hit)[[attrib]])){
-    mcols(feature_grs.hit)[[attrib]] = factor(mcols(feature_grs.hit)[[attrib]])
+  if(!is.factor(mcols(feature_grs.hit)[[sample_info_df.name_VAR]])){
+    mcols(feature_grs.hit)[[sample_info_df.name_VAR]] = factor(mcols(feature_grs.hit)[[sample_info_df.name_VAR]])
   }else{
-    mcols(feature_grs.hit)[[attrib]] = factor(mcols(feature_grs.hit)[[attrib]], levels = rev(levels(mcols(feature_grs.hit)[[attrib]])))
+    mcols(feature_grs.hit)[[sample_info_df.name_VAR]] = factor(mcols(feature_grs.hit)[[sample_info_df.name_VAR]], levels = rev(levels(mcols(feature_grs.hit)[[sample_info_df.name_VAR]])))
   }
-  c_id = mcols(feature_grs.hit)[[attrib]]
+  c_id = mcols(feature_grs.hit)[[sample_info_df.name_VAR]]
   mcols(feature_grs.hit) = NULL
   names(feature_grs.hit) = NULL
-  mcols(feature_grs.hit)[[attrib]] = c_id
+  mcols(feature_grs.hit)[[sample_info_df.name_VAR]] = c_id
   feature_grs.hit = unique(feature_grs.hit)
   feature_grs.hit = as.data.table(feature_grs.hit)
 
   if(!is.null(manual_levels)){
-    stopifnot(feature_grs.hit[[attrib]] %in% manual_levels)
-    set(feature_grs.hit, j = attrib, value = factor(feature_grs.hit[[attrib]], levels = manual_levels))
+    stopifnot(feature_grs.hit[[sample_info_df.name_VAR]] %in% manual_levels)
+    set(feature_grs.hit, j = sample_info_df.name_VAR, value = factor(feature_grs.hit[[sample_info_df.name_VAR]], levels = manual_levels))
   }
 
-  feature_grs.hit[, ymin := as.numeric(get(attrib))+pad-1]
-  feature_grs.hit[, ymax := as.numeric(get(attrib))-pad]
+  feature_grs.hit[, ymin := as.numeric(get(sample_info_df.name_VAR))+pad-1]
+  feature_grs.hit[, ymax := as.numeric(get(sample_info_df.name_VAR))-pad]
 
-  lev = levels(feature_grs.hit[[attrib]])
+  lev = levels(feature_grs.hit[[sample_info_df.name_VAR]])
 
   if(!is.null(sample_info_df)){
     if(is.null(sample_info_df[[sample_info_df.name_VAR]])){
@@ -68,8 +95,8 @@ track_features = function(feature_grs,
     if(!is.null(sample_info_df.fill_VAR)) sample_info_df[[sample_info_df.fill_VAR]] = sample_info_df[[sample_info_df.name_VAR]]
     if(!is.null(sample_info_df.color_VAR)) sample_info_df[[sample_info_df.color_VAR]] = sample_info_df[[sample_info_df.name_VAR]]
   }
-  sample_info_df[[attrib]] = sample_info_df[[sample_info_df.name_VAR]]
-  feature_grs.hit = merge(feature_grs.hit, sample_info_df, by = attrib)
+  sample_info_df[[sample_info_df.name_VAR]] = sample_info_df[[sample_info_df.name_VAR]]
+  feature_grs.hit = merge(feature_grs.hit, sample_info_df, by = sample_info_df.name_VAR)
 
   if(is.null(color_mapping)){
     if(is.null(sample_info_df.color_VAR)){
@@ -115,7 +142,8 @@ track_features = function(feature_grs,
   p_gr
 }
 
-#' Title
+#' track_features.numeric
+#'
 #'
 #' @param feature_grs
 #' @param query_gr
@@ -128,6 +156,7 @@ track_features = function(feature_grs,
 #' @param x_scale
 #' @param color_mapping
 #' @param fill_mapping
+#' @param legend.position
 #'
 #' @return
 #' @export

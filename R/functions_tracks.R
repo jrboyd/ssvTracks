@@ -47,7 +47,7 @@ my_plot_goi = function(goi,
   p_chip = track_chip(my_query_dt,
                       qgr,
                       fetch_fun = ssvFetchBam,
-                      win_FUN = "max",
+                      summary_FUN = "max",
                       nwin = nwin,
                       nspline = nspline) +
     scale_y_continuous(breaks = scales::pretty_breaks(n = 3))

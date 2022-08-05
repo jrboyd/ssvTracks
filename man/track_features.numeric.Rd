@@ -2,7 +2,7 @@
 % Please edit documentation in R/function_track_features.R
 \name{track_features.numeric}
 \alias{track_features.numeric}
-\title{Title}
+\title{track_features.numeric}
 \usage{
 track_features.numeric(
   feature_grs,
@@ -20,8 +20,8 @@ track_features.numeric(
 )
 }
 \arguments{
-\item{fill_mapping}{}
+\item{legend.position}{}
 }
 \description{
-Title
+track_features.numeric
 }

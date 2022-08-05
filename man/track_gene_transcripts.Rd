@@ -21,13 +21,13 @@ track_gene_transcripts(
 )
 }
 \arguments{
-\item{ref}{Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file inlcuding this information.}
+\item{ref}{Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file including this information.}
 
 \item{sel_gene_name}{The gene to plot transcripts for.  Must be present as "gene_name" entry in ref.}
 
-\item{query_gr}{Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10% wider than all transcripts plotted.}
+\item{query_gr}{Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10\% wider than all transcripts plotted.}
 
-\item{transcript_subset}{Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all trancripts.}
+\item{transcript_subset}{Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all transcripts.}
 
 \item{flip_x}{If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.}
 
@@ -43,7 +43,7 @@ track_gene_transcripts(
 
 \item{highlight_transcripts}{transcript_id items to highlight. Must be present. Default of NULL is no highlighting.}
 
-\item{highlight_color}{line color for highlighted transcripts. Dfault is "red".}
+\item{highlight_color}{line color for highlighted transcripts. Default is "red".}
 
 \item{show_tss}{If TRUE, TSS is indicated by a leading in-line arrow. Default is FALSE.}
 }

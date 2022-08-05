@@ -1,14 +1,14 @@
 #' track_rna.PE
 #'
+#'
 #' @param signal_files
 #' @param query_gr
-#' @param fetch_fun
-#' @param win_FUN
-#' @param sum_FUN
 #' @param flip_x
 #' @param nwin
 #' @param nspline
 #' @param fill_outline_color
+#' @param fill_alpha
+#' @param color_alpha
 #' @param y_label
 #' @param x_scale
 #' @param floor_value
@@ -17,12 +17,14 @@
 #' @param color_mapping
 #' @param fill_VAR
 #' @param fill_mapping
+#' @param facet_VAR
 #' @param legend.position
 #' @param names_on_right
 #' @param show_splice
 #' @param min_splice_count
 #' @param target_strand
 #' @param flip_strand
+#' @param return_data
 #' @param ...
 #'
 #' @return
@@ -33,8 +35,7 @@
 track_rna.PE = function(
     signal_files,
     query_gr,
-    win_FUN = c("mean", "max")[2],
-    # sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,

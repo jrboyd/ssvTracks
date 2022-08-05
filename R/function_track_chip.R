@@ -1,27 +1,26 @@
 
 #' track_chip
 #'
-#' @param signal_files Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame
-#' @param query_gr
-#' @param fetch_fun
-#' @param win_FUN
-#' @param sum_FUN
-#' @param flip_x
-#' @param nwin
-#' @param nspline
-#' @param fill_outline_color
-#' @param y_label
-#' @param x_scale
-#' @param floor_value
-#' @param ceiling_value
-#' @param color_VAR
-#' @param color_mapping
-#' @param fill_VAR
-#' @param fill_mapping
-#' @param facet_VAR
-#' @param legend.position
-#' @param names_on_right
-#' @param ...
+#' @param signal_files Character or data.frame. Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame
+#' @param query_gr GRanges. Defines regions to be fetched and plotted.
+#' @param fetch_fun An ssvFetc* function from seqsetvis. ssvFetchBam, ssvFetchBamPE or ssvFetchBigwig are likely choices.
+#' @param summary_FUN Either a function or character "mean" or "max".  If a custom function it must follow the form of weighted.mean() and accept 2 arguments, values and weights.
+#' @param flip_x If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.
+#' @param nwin Numeric. Higher numbers increase resolution but increase plotting time and size of .pdf files.
+#' @param nspline Numeric. If higher than 1, splines will be used to interpolate and smooth between windows.
+#' @param fill_outline_color Character. Color applied to outline for geom_ribbon used for filled tracks.
+#' @param y_label Character. Label for y-axis.
+#' @param x_scale One of "bp", "kbp", or "Mbp".  Scales x-axis labels accordingly.
+#' @param floor_value Numeric.  Values below floor will be increased to floor. Default is 0.
+#' @param ceiling_value Numeric. Values above ceiling will be decreased to ceiling. Default is Inf.
+#' @param color_VAR Character. Color variable if supplying signal_files as data.frame. Default of NULL disables colored line.
+#' @param color_mapping Named character. Maps values of color_VAR to valid colors.
+#' @param fill_VAR Character. Fill variable if supplying signal_files as data.frame. Default of "sample" results in 1 fill color per file.
+#' @param fill_mapping Named character. Maps values of fill_VAR to valid colors.
+#' @param facet_VAR Character.  Files that share a facet value will appear in the same track row. Default of "sample" results in 1 file per row.
+#' @param legend.position Charactter. Position for legend, see ggplot2::theme.  Most likely "right", "bottom", or "none".
+#' @param names_on_right logical. If TRUE (default) facet/row names appear on the right. If FALSE facet/row names appear on the left.
+#' @param ... Currently not used.
 #'
 #' @return
 #' @export
@@ -83,8 +82,7 @@
 track_chip = function(signal_files,
                       query_gr,
                       fetch_fun = seqsetvis::ssvFetchBam,
-                      win_FUN = c("mean", "max")[2],
-                      sum_FUN = NULL,
+                      summary_FUN = c("mean", "max")[2],
                       flip_x = NULL,
                       nwin = 3000,
                       nspline = 1,
@@ -114,7 +112,7 @@ track_chip = function(signal_files,
                         query_gr,
                         win_method = "summary",
                         win_size = nwin,
-                        summary_FUN = sum_FUN,
+                        summary_FUN = summary_FUN,
                         return_data.table = TRUE,
                         anchor = "left",
                         fragLens = NA

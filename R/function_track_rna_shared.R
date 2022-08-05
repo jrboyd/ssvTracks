@@ -4,8 +4,7 @@
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
@@ -41,8 +40,7 @@
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
@@ -122,8 +120,7 @@
 #' @param signal_files
 #' @param query_gr
 #' @param fetch_fun
-#' @param win_FUN
-#' @param sum_FUN
+#' @param summary_FUN
 #' @param flip_x
 #' @param nwin
 #' @param nspline
@@ -153,8 +150,7 @@ track_rna.SE = function(
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
@@ -186,7 +182,7 @@ track_rna.SE = function(
   }
   bw_dt.raw = fetch_fun(signal_files, query_gr,
                         win_method = "summary",  win_size = nwin,
-                        summary_FUN = sum_FUN,
+                        summary_FUN = summary_FUN,
                         return_data.table = TRUE,
                         anchor = "left",
                         target_strand = target_strand,
@@ -196,7 +192,7 @@ track_rna.SE = function(
   if(show_splice){
     splice_dt.raw = fetch_fun(signal_files, query_gr,
                               win_method = "summary",  win_size = nwin,
-                              summary_FUN = sum_FUN,
+                              summary_FUN = summary_FUN,
                               return_data.table = TRUE,
                               anchor = "left",
                               fragLens = NA,
@@ -224,8 +220,7 @@ track_rna.SE = function(
 #' @param signal_files
 #' @param query_gr
 #' @param fetch_fun
-#' @param win_FUN
-#' @param sum_FUN
+#' @param summary_FUN
 #' @param flip_x
 #' @param nwin
 #' @param nspline
@@ -254,8 +249,7 @@ track_rna.SE = function(
 track_rna.PE = function(
     signal_files,
     query_gr,
-    win_FUN = c("mean", "max")[2],
-    # sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,

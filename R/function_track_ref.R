@@ -130,10 +130,10 @@ track_gene_reference = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
 
 #' track_gene_transcripts
 #'
-#' @param ref Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file inlcuding this information.
+#' @param ref Either a GRanges object containing "exon" features coded in "type" variable and with "gene_name" entries or a path to gtf file including this information.
 #' @param sel_gene_name The gene to plot transcripts for.  Must be present as "gene_name" entry in ref.
-#' @param query_gr Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10% wider than all transcripts plotted.
-#' @param transcript_subset Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all trancripts.
+#' @param query_gr Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10\% wider than all transcripts plotted.
+#' @param transcript_subset Character vector of transcript_id to plot. Also controls plot order of transcripts if provided. Default of NULL plots all transcripts.
 #' @param flip_x If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.
 #' @param x_scale One of "bp", "kbp", or "Mbp".  Scales x-axis labels accordingly.
 #' @param intron_thickness Line thickness for introns.  0 disables intron drawing. Default is 0.
@@ -141,7 +141,7 @@ track_gene_reference = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf",
 #' @param exon_color color for exon lines and fill. Default is "black"
 #' @param intron_color color for intron lines. Default is the same as exon_color.
 #' @param highlight_transcripts transcript_id items to highlight. Must be present. Default of NULL is no highlighting.
-#' @param highlight_color line color for highlighted transcripts. Dfault is "red".
+#' @param highlight_color line color for highlighted transcripts. Default is "red".
 #' @param show_tss If TRUE, TSS is indicated by a leading in-line arrow. Default is FALSE.
 #'
 #' @return A ggplot in which exon structure of transcripts is shown.

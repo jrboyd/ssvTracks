@@ -2,25 +2,23 @@ testthat::context("track_features")
 library(ssvTracks)
 library(testthat)
 
-bam_files = dir(system.file(package = "ssvTracks", "extdata"), full.names = TRUE, pattern = "bam$")
-bw_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+bw$")
 peak_files = dir(system.file(package = "seqsetvis", "extdata"), full.names = TRUE, pattern = "MCF.+Peak$")
 peak_grs = seqsetvis::easyLoad_narrowPeak(peak_files)
 
 olaps = seqsetvis::ssvOverlapIntervalSets(peak_grs)
 
-query_gr = olaps[1]
+query_gr = olaps[3]
 query_gr = resize(query_gr, 10e4, fix = "center")
 
 test_that("track_features defaults", {
-  p = track_features(peak_grs, resize(olaps[3], 10e4, fix = "center"))
+  p = track_features(peak_grs, query_gr)
   p
   testthat::expect_is(p, "ggplot")
 })
 
 test_that("track_features other args", {
   p = track_features(peak_grs,
-                     resize(olaps[1], 10e4, fix = "center"),
+                     query_gr,
                      pad = .2,
                      attrib = "qValue",
                      flip_x = FALSE,
@@ -35,7 +33,7 @@ test_that("track_features sample_info", {
   cfg_df$cell = sapply(strsplit(cfg_df$sample, "_"), function(x)x[1])
   cfg_df$mark = sapply(strsplit(cfg_df$sample, "_"), function(x)x[2])
   p = track_features(peak_grs,
-                     resize(olaps[3], 10e4, fix = "center"),
+                     query_gr,
                      sample_info_df = cfg_df,
                      sample_info_df.color_VAR = "mark",
                      sample_info_df.fill_VAR = "cell",

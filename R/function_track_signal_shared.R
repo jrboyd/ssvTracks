@@ -24,8 +24,7 @@ DEF_FILL_ = "default_fill__"
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
@@ -57,8 +56,8 @@ DEF_FILL_ = "default_fill__"
   if(is.null(flip_x)){
     flip_x = as.character(strand(query_gr) == "-")
   }
-  if(is.null(sum_FUN)){
-    sum_FUN = switch (win_FUN,
+  if(is.character(summary_FUN)){
+    summary_FUN = switch (summary_FUN,
                       max = function(x, w)max(x),
                       mean = weighted.mean
     )
@@ -126,7 +125,7 @@ DEF_FILL_ = "default_fill__"
   args$target_strand = target_strand
   args$signal_files = signal_files
   args$nwin = nwin
-  args$sum_FUN = sum_FUN
+  args$summary_FUN = summary_FUN
   args$color_VAR = color_VAR
   args$fill_VAR = fill_VAR
   args
@@ -138,8 +137,7 @@ DEF_FILL_ = "default_fill__"
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
-    win_FUN = c("mean", "max")[2],
-    sum_FUN = NULL,
+    summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,

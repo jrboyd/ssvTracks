@@ -8,7 +8,7 @@
 track_rna.PE(
   signal_files,
   query_gr,
-  win_FUN = c("mean", "max")[2],
+  summary_FUN = c("mean", "max")[2],
   flip_x = NULL,
   nwin = 3000,
   nspline = 1,
@@ -37,7 +37,7 @@ track_rna.PE(
 track_rna.PE(
   signal_files,
   query_gr,
-  win_FUN = c("mean", "max")[2],
+  summary_FUN = c("mean", "max")[2],
   flip_x = NULL,
   nwin = 3000,
   nspline = 1,
