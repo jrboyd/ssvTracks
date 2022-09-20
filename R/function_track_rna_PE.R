@@ -46,9 +46,9 @@ track_rna.PE = function(
     signal_files, query_gr,
     win_method = "summary",
     win_size = nwin,
-    return_data.table = TRUE,
     target_strand = target_strand,
-    flip_strand = flip_strand
+    flip_strand = flip_strand,
+    return_data.table = TRUE
   )
   args2$bw_dt.raw = bw_dt.raw
 
@@ -56,11 +56,13 @@ track_rna.PE = function(
     splice_dt.raw = ssvFetchBamPE.RNA_splice(
       signal_files,
       query_gr,
+      target_strand = target_strand,
+      flip_strand = flip_strand,
       return_data.table = TRUE
     )
-    if(target_strand %in% c("+", "-")){
-      splice_dt.raw = splice_dt.raw[strand == target_strand]
-    }
+    # if(target_strand %in% c("+", "-")){
+    #   splice_dt.raw = splice_dt.raw[strand == target_strand]
+    # }
     setnames(splice_dt.raw, "N", "y")
     args2$splice_dt.raw = splice_dt.raw
   }else{

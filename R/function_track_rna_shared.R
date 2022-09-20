@@ -107,8 +107,12 @@
   }
 
   if(show_splice){
+    #ensure that is splice event in 1 sample it's plotted in all
+    #avoids plotting 100 but not plotting 99
+    valid_start_end = unique(splice_dt[y >= min_splice_count][, .(start, end)])
+    valid_splice_dt = merge(splice_dt, valid_start_end, by = c('start', 'end'))
     p_rna = p_rna + ggbio::geom_arch(
-      data = splice_dt[y >= min_splice_count], aes(x = start, xend = end, height = y),
+      data = valid_splice_dt, aes(x = start, xend = end, height = y),
       color = "black"
     )
   }

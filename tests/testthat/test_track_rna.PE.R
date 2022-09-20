@@ -53,10 +53,20 @@ test_that("ssvFetchBamPE.RNA_splice", {
 
 #QcConfigFeatures
 test_that("track_rna.PE no spline", {
-  p1 = track_rna.PE(bam_files, query_gr)
+  p1 = track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 5e3, color_VAR = "sample")
   p1
   testthat::expect_is(p1, "ggplot")
 })
+
+if(FALSE){
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample")
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", target_strand = "-")
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", target_strand = "+")
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", flip_strand = FALSE)
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", flip_strand = TRUE)
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", flip_strand = TRUE, target_strand = "-")
+  track_rna.PE(bam_files, query_gr, nspline = 0, nwin = 1e3, color_VAR = "sample", flip_strand = TRUE, target_strand = "+")
+}
 
 test_that("track_rna.PE other strand, default spline", {
   p2 = track_rna.PE(bam_files, query_gr, target_strand = "+")
@@ -83,8 +93,8 @@ bw_cfg_dt[, c("cell", "rep") := tstrsplit(sample, "[_\\.]", keep = 1:2)]
 bw_cfg_dt[, sample := paste(cell, rep, sep = "\n")]
 
 test_that("track_rna.PE by cfg", {
-  p = track_rna.PE(bw_cfg_dt, query_gr, nwin = 10)+
-    labs(y = "FE", title = "CTCF")
+  p = track_rna.PE(bw_cfg_dt, query_gr, nwin = 5000, show_splice = TRUE)+
+    labs(y = "RPM", title = "CTCF")
   p
   testthat::expect_is(p, "ggplot")
 })

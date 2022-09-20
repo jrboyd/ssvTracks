@@ -27,7 +27,7 @@ ssvFetchBamPE.RNA = function(
     return_data.table = FALSE,
     win_method = "sample",
     max_dupes = Inf,
-    flip_strand = TRUE,
+    flip_strand = FALSE,
     sum_reads = TRUE,
     n_cores = getOption("mc.cores", 1),
     force_skip_centerFix = TRUE,
@@ -44,7 +44,7 @@ ssvFetchBamPE.RNA = function(
     win_size = win_size,
     flag = Rsamtools::scanBamFlag(isFirstMateRead = TRUE),
     win_method = win_method,
-    flip_strand = flip_strand,
+    flip_strand = !flip_strand,
     max_dupes = max_dupes,
     n_cores = n_cores,
     force_skip_centerFix = force_skip_centerFix,
@@ -63,7 +63,7 @@ ssvFetchBamPE.RNA = function(
       win_size = win_size,
       flag = Rsamtools::scanBamFlag(isSecondMateRead = TRUE),
       win_method = win_method,
-      flip_strand = !flip_strand,
+      flip_strand = flip_strand,
       max_dupes = max_dupes,
       n_cores = n_cores,
       force_skip_centerFix = force_skip_centerFix,
@@ -130,14 +130,22 @@ ssvFetchBamPE.RNA_splice = function(
   cn = setdiff(colnames(splice_dt), c("read", "N"))
   splice_dt = splice_dt[, .(N = sum(N)), c(cn)]
 
+  # if(flip_strand){
+  #   if(final_target_strand == "+"){
+  #     final_target_strand = "-"
+  #   }else if(final_target_strand == "-"){
+  #     final_target_strand = "+"
+  #   }
+  # }
+  if(flip_strand){
+    splice_dt[strand == "+", strand := "tmp"]
+    splice_dt[strand == "-", strand := "+"]
+    splice_dt[strand == "tmp", strand := "-"]
+  }
   if(final_target_strand %in% c("-", "+")){
     splice_dt = splice_dt[strand == final_target_strand]
   }
-  # if(!flip_strand){
-  #   splice_dt[strand == "+", strand := "tmp"]
-  #   splice_dt[strand == "-", strand := "+"]
-  #   splice_dt[strand == "tmp", strand := "-"]
-  # }
+
 
   splice_dt[]
 }
