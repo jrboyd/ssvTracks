@@ -1,6 +1,6 @@
 
 .apply_x_scale = function(p, x_scale = c("bp", "kbp", "Mbp")[2], prefix = NULL){
-  stopifnot(x_scale %in% c("bp", "kbp", "Mbp"))
+  stopifnot(x_scale %in% c("bp", "kbp", "Mbp", "k", "M"))
   x_label_FUN = switch (
     x_scale,
     bp = {
@@ -10,6 +10,12 @@
       function(x)x/1e3
     },
     Mbp = {
+      function(x)x/1e6
+    },
+    k = {
+      function(x)x/1e3
+    },
+    M = {
       function(x)x/1e6
     }
   )

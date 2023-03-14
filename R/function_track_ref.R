@@ -214,12 +214,12 @@ track_gene_transcripts = function(ref = "~/../joeboyd/gencode.v36.annotation.gtf
     if(flip_x) transcript_lev = rev(transcript_lev)
   }
 
-  ex_dt = ex_dt[, list(seqnames, start, end, gene_id, transcript_id, exon_id, gene_name, strand)]
+  ex_dt = ex_dt[, c("seqnames", "start", "end", "gene_id", "transcript_id", "exon_id", "gene_name", "strand")]
   ex_dt$transcript_id = factor(ex_dt$transcript_id, levels = transcript_lev)
 
   pad = (1-exon_height)/2
-  ex_dt[, ymin := as.numeric(transcript_id)-1+pad]
-  ex_dt[, ymax := as.numeric(transcript_id)-pad]
+  set(ex_dt, j = "ymin", value = as.numeric(ex_dt$transcript_id)-1+pad)
+  set(ex_dt, j = "ymax", value = as.numeric(ex_dt$transcript_id)-pad)
 
   ex_dt$color = exon_color
   if(!is.null(highlight_transcripts)){

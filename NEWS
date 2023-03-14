@@ -1,0 +1,4 @@
+# 0.1.1
+
+* added x_scale support to track_assembly
+* x_scale k and M added as valid
