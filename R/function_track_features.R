@@ -63,6 +63,9 @@ track_features = function(feature_grs,
     feature_grs = unlist(GRangesList(feature_grs))
   }
   feature_grs.hit = subsetByOverlaps(feature_grs, query_gr, ignore.strand = TRUE)
+  if(length(feature_grs.hit) == 0){
+    warning("no features found in query_gr.")
+  }
   if(!is.factor(mcols(feature_grs.hit)[[sample_info_df.name_VAR]])){
     mcols(feature_grs.hit)[[sample_info_df.name_VAR]] = factor(mcols(feature_grs.hit)[[sample_info_df.name_VAR]])
   }else{
@@ -72,7 +75,7 @@ track_features = function(feature_grs,
   mcols(feature_grs.hit) = NULL
   names(feature_grs.hit) = NULL
   mcols(feature_grs.hit)[[sample_info_df.name_VAR]] = c_id
-  feature_grs.hit = unique(feature_grs.hit)
+  # feature_grs.hit = unique(feature_grs.hit)
   feature_grs.hit = as.data.table(feature_grs.hit)
 
   if(!is.null(manual_levels)){
@@ -97,6 +100,9 @@ track_features = function(feature_grs,
   }
   sample_info_df[[sample_info_df.name_VAR]] = sample_info_df[[sample_info_df.name_VAR]]
   feature_grs.hit = merge(feature_grs.hit, sample_info_df, by = sample_info_df.name_VAR)
+  if(nrow(feature_grs.hit) == 0){
+    warning("all features lost merging with sample_info_df. check values of sample_info_df.name_VAR ", sample_info_df.name_VAR)
+  }
 
   if(is.null(color_mapping)){
     if(is.null(sample_info_df.color_VAR)){

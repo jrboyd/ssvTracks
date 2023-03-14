@@ -158,6 +158,7 @@ DEF_FILL_ = "default_fill__"
     target_strand = NULL,
     flip_strand = FALSE,
     return_data = FALSE,
+    show_splice = FALSE,
     ...){
   if(!is.null(bw_dt.raw$mapped_reads)){
     bw_dt.raw[, y_raw := y]
@@ -191,11 +192,15 @@ DEF_FILL_ = "default_fill__"
   bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
   bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
 
+  bw_dt[, x := (end + start)/2]
   if(nspline > 1){
-    bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = c("sample"))
+    bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = unique(c(color_VAR, fill_VAR, facet_VAR)))
+    #bw_dt[, x := (end + start)/2]
+    # set(bw_dt, j = "x", value = start(query_gr) + width(query_gr)*bw_dt$x)
+    #does x need to be end(query_gr) - width(query_gr) if strand is negative?
   }
 
-  bw_dt[, x := (end + start)/2]
+
 
   bw_dt[y > ceiling_value, y := ceiling_value]
   bw_dt[y < floor_value, y := floor_value]
