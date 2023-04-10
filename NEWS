@@ -1,3 +1,7 @@
+# 0.1.2
+
+* remove black coloring from splice arches, use same color as track
+
 # 0.1.1
 
 * added x_scale support to track_assembly

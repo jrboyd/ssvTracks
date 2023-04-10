@@ -1,7 +1,7 @@
 Package: ssvTracks
 Type: Package
 Title: Track Style Plots, seqsetvis Style
-Version: 0.1.1
+Version: 0.1.2
 Authors@R: person("Joseph R", "Boyd", email = "jrboyd@uvm.edu",
                   role = c("aut", "cre"))
 Description: ssvTracks provides specialized functions for creating publishable tracks with the power of ggplot2 enable by seqsetvis' tidy approach to sequencing data.
