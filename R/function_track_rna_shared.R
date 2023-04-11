@@ -115,18 +115,18 @@
     valid_splice_dt = merge(splice_dt, valid_start_end, by = c('start', 'end'))
     if(nrow(valid_splice_dt) > 0){
       if(!is.null(splice_within_range_only)){
+        gr = GRanges(valid_splice_dt)
+        strand(gr) = "+"
+        gr.starts = promoters(gr, 1, 1)
+        gr.ends = promoters(invertStrand(gr), 1, 1)
         if(is(splice_within_range_only, "GRanges")){
-          olaps = findOverlaps(GRanges(valid_splice_dt), splice_within_range_only)
-          valid_splice_dt = valid_splice_dt[queryHits(olaps),]
+          olaps1 = findOverlaps(gr.starts, splice_within_range_only, ignore.strand = TRUE)
+          olaps2 = findOverlaps(gr.ends, splice_within_range_only, ignore.strand = TRUE)
+          hit_i = intersect(queryHits(olaps1), queryHits(olaps2))
         }else if(is.list(splice_within_range_only) || is(splice_within_range_only, "GRangesList")){
           stopifnot(length(splice_within_range_only) == 2)
           stopifnot(is(splice_within_range_only[[1]], "GRanges"))
           stopifnot(is(splice_within_range_only[[2]], "GRanges"))
-
-          gr = GRanges(valid_splice_dt)
-          strand(gr) = "+"
-          gr.starts = promoters(gr, 1, 1)
-          gr.ends = promoters(invertStrand(gr), 1, 1)
           olaps1a = findOverlaps(gr.starts, splice_within_range_only[[1]], ignore.strand = TRUE)
           olaps2a = findOverlaps(gr.ends, splice_within_range_only[[2]], ignore.strand = TRUE)
 
@@ -137,10 +137,10 @@
             intersect(queryHits(olaps1a), queryHits(olaps2a)),
             intersect(queryHits(olaps1b), queryHits(olaps2b))
           )
-          valid_splice_dt = valid_splice_dt[hit_i,]
         }else{
           stop("splice_within_range_only must be either a GRanges or a list of length 2 containing GRanges")
         }
+        valid_splice_dt = valid_splice_dt[hit_i,]
       }
     }
     if(color_VAR == DEF_COLOR_){
