@@ -27,7 +27,8 @@ track_rna.SE(
   legend.position = "right",
   names_on_right = TRUE,
   show_splice = TRUE,
-  min_splice_count = 10,
+  min_splice_count = 0,
+  splice_within_range_only = NULL,
   target_strand = NULL,
   flip_strand = TRUE,
   return_data = FALSE,
@@ -71,4 +72,34 @@ track_rna.SE(
 }
 \description{
 track_rna.SE
+}
+\examples{
+pkg_dir = system.file(package = "ssvTracks", "extdata", mustWork = TRUE)
+bam_files_esr1 = dir(pkg_dir, pattern = "M.+R1.ESR1_RNA.+bam$", full.names = TRUE)
+names(bam_files_esr1) = sub("_R.+", "", basename(bam_files_esr1))
+bed_file_esr1 = dir(pkg_dir, pattern = "ESR1.bed", full.names = TRUE)
+query_gr = rtracklayer::import.bed(bed_file_esr1)
+
+track_rna.SE(bam_files_esr1, query_gr)
+
+track_rna.SE(bam_files_esr1,
+  query_gr,
+  show_splice = TRUE,
+  flip_strand = TRUE)
+
+track_rna.SE(bam_files_esr1,
+  query_gr,
+  show_splice = TRUE,
+  flip_strand = FALSE)
+
+track_rna.SE(bam_files_esr1,
+  GRanges("chr6", IRanges(151800000, 151900000)),
+  flip_strand = TRUE,
+  show_splice = TRUE)
+
+track_rna.SE(bam_files_esr1,
+  GRanges("chr6", IRanges(151800000, 151900000)),
+  flip_strand = TRUE,
+  show_splice = TRUE,
+  color_VAR = "sample")
 }

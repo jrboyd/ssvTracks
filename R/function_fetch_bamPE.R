@@ -18,6 +18,12 @@
 #' @export
 #'
 #' @examples
+#' pkg_dir = system.file(package = "ssvTracks", "extdata", mustWork = TRUE)
+#' bam_files_esr1 = dir(pkg_dir, pattern = "M.+R1.ESR1_RNA.+bam$", full.names = TRUE)
+#' names(bam_files_esr1) = sub("_R.+", "", basename(bam_files_esr1))
+#' bed_file_esr1 = dir(pkg_dir, pattern = "ESR1.bed", full.names = TRUE)
+#' query_gr = rtracklayer::import.bed(bed_file_esr1)
+#' prof_dt = ssvFetchBamPE.RNA(bam_files_esr1, query_gr, return_data.table = TRUE)
 ssvFetchBamPE.RNA = function(
     file_paths,
     query_gr,
@@ -103,6 +109,20 @@ ssvFetchBamPE.RNA = function(
 #' @export
 #'
 #' @examples
+#' pkg_dir = system.file(package = "ssvTracks", "extdata", mustWork = TRUE)
+#' bam_files_runx1 = dir(pkg_dir, pattern = "RUNX1_RNA.+bam$", full.names = TRUE)
+#' names(bam_files_runx1) = sub("_rep.+", "", basename(bam_files_runx1))
+#' bed_file_runx1 = dir(pkg_dir, pattern = "RUNX1.bed", full.names = TRUE)
+#' query_gr = rtracklayer::import.bed(bed_file_runx1)
+#'
+#' track_rna.PE(bam_files_runx1, query_gr)
+#' track_rna.PE(bam_files_runx1, query_gr, flip_strand = TRUE)
+#'
+#' splice_dt.no_flip = ssvFetchBamPE.RNA_splice(bam_files_runx1, query_gr, return_data.table = TRUE)
+#' splice_dt.no_flip
+#' splice_dt = ssvFetchBamPE.RNA_splice(bam_files_runx1, query_gr, return_data.table = TRUE, flip_strand = TRUE)
+#' splice_dt
+#'
 ssvFetchBamPE.RNA_splice = function(
     file_paths,
     query_gr, win_size = 50,

@@ -8,6 +8,43 @@
 #' @import seqsetvis
 #'
 #' @examples
+#' pkg_dir = system.file(package = "ssvTracks", "extdata", mustWork = TRUE)
+#' bam_files_runx1 = dir(pkg_dir, pattern = "RUNX1_RNA.+bam$", full.names = TRUE)
+#' names(bam_files_runx1) = sub("_rep.+", "", basename(bam_files_runx1))
+#' bed_file_runx1 = dir(pkg_dir, pattern = "RUNX1.bed", full.names = TRUE)
+#' query_gr = rtracklayer::import.bed(bed_file_runx1)
+#'
+#' track_rna.PE(bam_files_runx1, query_gr)
+#'
+#' track_rna.PE(bam_files_runx1,
+#'   query_gr,
+#'   show_splice = TRUE,
+#'   flip_strand = TRUE)
+#'
+#' track_rna.PE(bam_files_runx1,
+#'   GRanges("chr21", IRanges(34800000, 34900000)),
+#'   flip_strand = TRUE,
+#'   show_splice = TRUE)
+#'
+#' track_rna.PE(bam_files_runx1,
+#'   GRanges("chr21", IRanges(34800000, 34900000)),
+#'   flip_strand = TRUE,
+#'   show_splice = TRUE,
+#'   color_VAR = "sample")
+#'
+#' track_rna.PE(bam_files_runx1,
+#' query_gr,
+#' show_splice = TRUE,
+#' flip_strand = TRUE,
+#' splice_within_range_only = resize(query_gr, 1e5)
+#' )
+#'
+#' track_rna.PE(bam_files_runx1,
+#'              query_gr,
+#'              show_splice = TRUE,
+#'              flip_strand = TRUE,
+#'              splice_within_range_only = list(resize(query_gr, 1e5), shift(resize(query_gr, 1e5), 1e5))
+#' )
 track_rna.PE = function(
     signal_files,
     query_gr,
@@ -30,7 +67,8 @@ track_rna.PE = function(
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
-    min_splice_count = 10,
+    min_splice_count = 0,
+    splice_within_range_only = NULL,
     target_strand = NULL,
     flip_strand = FALSE,
     return_data = FALSE,
@@ -59,7 +97,12 @@ track_rna.PE = function(
       return_data.table = TRUE
     )
     if(target_strand %in% c("+", "-")){
-      splice_dt.raw = splice_dt.raw[strand == target_strand]
+      if(flip_strand){
+        inv_strand = c("-" = "+", "+" = "-")[target_strand]
+        splice_dt.raw = splice_dt.raw[strand == inv_strand]
+      }else{
+        splice_dt.raw = splice_dt.raw[strand == target_strand]
+      }
     }
     setnames(splice_dt.raw, "N", "y")
     args2$splice_dt.raw = splice_dt.raw

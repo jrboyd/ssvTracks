@@ -1,3 +1,7 @@
+# 0.1.3
+
+* added splice_within_range_only to RNA tracks
+
 # 0.1.2
 
 * remove black coloring from splice arches, use same color as track

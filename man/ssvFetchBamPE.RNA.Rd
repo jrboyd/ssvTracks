@@ -13,7 +13,7 @@ ssvFetchBamPE.RNA(
   return_data.table = FALSE,
   win_method = "sample",
   max_dupes = Inf,
-  flip_strand = TRUE,
+  flip_strand = FALSE,
   sum_reads = TRUE,
   n_cores = getOption("mc.cores", 1),
   force_skip_centerFix = TRUE,
@@ -52,4 +52,12 @@ A tidy formatted GRanges (or data.table if specified) containing fetched values.
 }
 \description{
 ssvFetchBamPE.RNA
+}
+\examples{
+pkg_dir = system.file(package = "ssvTracks", "extdata", mustWork = TRUE)
+bam_files_esr1 = dir(pkg_dir, pattern = "M.+R1.ESR1_RNA.+bam$", full.names = TRUE)
+names(bam_files_esr1) = sub("_R.+", "", basename(bam_files_esr1))
+bed_file_esr1 = dir(pkg_dir, pattern = "ESR1.bed", full.names = TRUE)
+query_gr = rtracklayer::import.bed(bed_file_esr1)
+prof_dt = ssvFetchBamPE.RNA(bam_files_esr1, query_gr, return_data.table = TRUE)
 }

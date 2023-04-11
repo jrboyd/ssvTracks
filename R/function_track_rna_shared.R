@@ -26,7 +26,8 @@
     flip_strand = FALSE,
     return_data = FALSE,
     show_splice = TRUE,
-    min_splice_count = 10,
+    min_splice_count = 0,
+    splice_within_range_only = NULL,
     ...){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
@@ -62,7 +63,8 @@
     flip_strand = FALSE,
     return_data = FALSE,
     show_splice = TRUE,
-    min_splice_count = 10,
+    min_splice_count = 0,
+    splice_within_range_only = NULL,
     ...){
   env = as.list(sys.frame(sys.nframe()))
   args = c(as.list(env), list(...))
@@ -92,7 +94,7 @@
   )
 
   if(show_splice & !is.null(splice_dt.raw)){
-    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end")))]
+    splice_dt = splice_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "start", "end", "seqnames")))]
     splice_dt$sample = apply(splice_dt[, group_vars, with = FALSE], 1, paste, collapse = " ")
     splice_dt = splice_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
     splice_dt$sample = factor(splice_dt$sample, levels = unique(splice_dt$sample))
@@ -111,10 +113,49 @@
     #avoids plotting 100 but not plotting 99
     valid_start_end = unique(splice_dt[y >= min_splice_count][, .(start, end)])
     valid_splice_dt = merge(splice_dt, valid_start_end, by = c('start', 'end'))
-    p_rna = p_rna + ggbio::geom_arch(
-      data = valid_splice_dt, aes(x = start, xend = end, height = y)#,
-      # color = "black"
-    )
+    if(nrow(valid_splice_dt) > 0){
+      if(!is.null(splice_within_range_only)){
+        if(is(splice_within_range_only, "GRanges")){
+          olaps = findOverlaps(GRanges(valid_splice_dt), splice_within_range_only)
+          valid_splice_dt = valid_splice_dt[queryHits(olaps),]
+        }else if(is.list(splice_within_range_only) || is(splice_within_range_only, "GRangesList")){
+          stopifnot(length(splice_within_range_only) == 2)
+          stopifnot(is(splice_within_range_only[[1]], "GRanges"))
+          stopifnot(is(splice_within_range_only[[2]], "GRanges"))
+
+          gr = GRanges(valid_splice_dt)
+          strand(gr) = "+"
+          gr.starts = promoters(gr, 1, 1)
+          gr.ends = promoters(invertStrand(gr), 1, 1)
+          olaps1a = findOverlaps(gr.starts, splice_within_range_only[[1]], ignore.strand = TRUE)
+          olaps2a = findOverlaps(gr.ends, splice_within_range_only[[2]], ignore.strand = TRUE)
+
+
+          olaps1b = findOverlaps(gr.starts, splice_within_range_only[[2]], ignore.strand = TRUE)
+          olaps2b = findOverlaps(gr.ends, splice_within_range_only[[1]], ignore.strand = TRUE)
+          hit_i = union(
+            intersect(queryHits(olaps1a), queryHits(olaps2a)),
+            intersect(queryHits(olaps1b), queryHits(olaps2b))
+          )
+          valid_splice_dt = valid_splice_dt[hit_i,]
+        }else{
+          stop("splice_within_range_only must be either a GRanges or a list of length 2 containing GRanges")
+        }
+      }
+    }
+    if(color_VAR == DEF_COLOR_){
+      p_rna = p_rna + ggbio::geom_arch(
+        data = valid_splice_dt, aes(x = start, xend = end, height = y), show.legend = FALSE,
+        color = "black"
+      )
+    }else{
+      color_VAR = ensym(color_VAR)
+      p_rna = p_rna + ggbio::geom_arch(
+        data = valid_splice_dt, aes(x = start, xend = end, height = y, color = !!color_VAR), show.legend = FALSE#,
+        # color = "black"
+      )
+    }
+
   }
   p_rna
 }

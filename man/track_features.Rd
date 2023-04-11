@@ -23,11 +23,17 @@ track_features(
 \arguments{
 \item{feature_grs}{List. Must contain GRanges.  To include meta data as color or fill, specify sample_info_df.}
 
+\item{query_gr}{Determines plot x-range and impacts flip_x.  Default of NULL adjusts to 10\% wider than all transcripts plotted.}
+
 \item{sample_info_df.name_VAR}{Character. Default is "sample". Use for mapping sample_info to feature_grs. Values of sample_info_df for this attribute must be setequal to names of feature_grs.}
 
 \item{sample_info_df.color_VAR}{Character. Default is NULL (no color mapping). Use for mapping sample_info to color. Values of sample_info_df for this attribute must be setequal to names of color_mapping.}
 
 \item{sample_info_df.fill_VAR}{Character. Default is "sample". Use for mapping sample_info to fill Values of sample_info_df for this attribute must be setequal to names of fill_mapping.}
+
+\item{flip_x}{If TRUE, x-axis is flipped to be decreasing.  Default of NULL will flip_x automatically when query_gr strand is negative.}
+
+\item{x_scale}{One of "bp", "kbp", or "Mbp".  Scales x-axis labels accordingly.}
 
 \item{legend.position}{}
 }

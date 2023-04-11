@@ -31,7 +31,8 @@ returns modified copy of args}
   flip_strand = FALSE,
   return_data = FALSE,
   show_splice = TRUE,
-  min_splice_count = 10,
+  min_splice_count = 0,
+  splice_within_range_only = NULL,
   ...
 )
 }

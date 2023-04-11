@@ -3,16 +3,14 @@
 #'
 #'
 #' @param feature_grs List. Must contain GRanges.  To include meta data as color or fill, specify sample_info_df.
-#' @param query_gr
+#' @template ssvTracks_common_params
 #' @param sample_info_df
 #' @param sample_info_df.name_VAR Character. Default is "sample". Use for mapping sample_info to feature_grs. Values of sample_info_df for this attribute must be setequal to names of feature_grs.
 #' @param sample_info_df.color_VAR Character. Default is NULL (no color mapping). Use for mapping sample_info to color. Values of sample_info_df for this attribute must be setequal to names of color_mapping.
 #' @param sample_info_df.fill_VAR Character. Default is "sample". Use for mapping sample_info to fill Values of sample_info_df for this attribute must be setequal to names of fill_mapping.
 #' @param attrib
 #' @param pad
-#' @param flip_x
 #' @param manual_levels
-#' @param x_scale
 #' @param color_mapping
 #' @param fill_mapping
 #' @param legend.position
