@@ -1,3 +1,8 @@
+# 0.1.5
+
+* fix issues with strand handling in RNA seq especially with splicing
+* track_features.numeric now better handles single GRanges and attrib
+
 # 0.1.4
 
 * added splice_within_range_only to RNA tracks

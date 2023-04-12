@@ -166,6 +166,17 @@ track_features = function(feature_grs,
 #' @export
 #'
 #' @examples
+#'
+#' clust_dt = seqsetvis::ssvSignalClustering(seqsetvis::CTCF_in_10a_profiles_dt)
+#' assign_dt = unique(clust_dt[, .(id, cluster_id)])
+#' olap_gr = seqsetvis::CTCF_in_10a_overlaps_gr
+#' olap_gr$cluster_id = ""
+#' olap_gr[assign_dt$id]$cluster_id = assign_dt$cluster_id
+#' track_features.numeric(olap_gr,
+#'                        query_gr = GRanges("chr1", IRanges(40e6, 70e6)),
+#'                        color_VAR = "cluster_id",
+#'                        fill_VAR = "cluster_id",
+#'                        attrib = "peaks")
 track_features.numeric = function(feature_grs,
                                   query_gr,
                                   color_VAR = NULL,
@@ -190,6 +201,9 @@ track_features.numeric = function(feature_grs,
     feature_grs = unlist(GRangesList(feature_grs))
   }
   feature_grs.hit = subsetByOverlaps(feature_grs, query_gr, ignore.strand = TRUE)
+  if(is.null(mcols(feature_grs.hit)[[attrib]])){
+    mcols(feature_grs.hit)[[attrib]] = attrib
+  }
   if(!is.factor(mcols(feature_grs.hit)[[attrib]])){
     mcols(feature_grs.hit)[[attrib]] = factor(mcols(feature_grs.hit)[[attrib]])
   }else{

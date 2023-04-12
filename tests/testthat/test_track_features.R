@@ -20,7 +20,6 @@ test_that("track_features other args", {
   p = track_features(peak_grs,
                      query_gr,
                      pad = .2,
-                     attrib = "qValue",
                      flip_x = FALSE,
                      x_scale = "Mbp",
                      manual_levels = names(peak_grs)[c(2, 1, 3)])
@@ -55,6 +54,7 @@ test_that("track_features.numeric fill only", {
     peak_grs,
     resize(olaps[3], 10e4, fix = "center"),
     fill_VAR = "pValue")
+  p
   testthat::expect_is(p, "ggplot")
 })
 
@@ -65,6 +65,7 @@ test_that("track_features.numeric fill only new scale", {
     fill_VAR = "signalValue") +
     scale_color_viridis_c() +
     scale_fill_viridis_c(option = "magma")
+  p
   testthat::expect_is(p, "ggplot")
 })
 
@@ -76,6 +77,7 @@ test_that("track_features.numeric fill and color", {
     fill_VAR = "pValue") +
     scale_color_viridis_c(option = "magma") +
     scale_fill_viridis_c(option = "magma")
+  p
   testthat::expect_is(p, "ggplot")
 })
 
@@ -88,6 +90,7 @@ test_that("track_features.numeric fill and color new scales", {
     scale_color_gradientn(colors = rep("black", 2)) +
     scale_fill_viridis_c(option = "magma") +
     guides(color = "none")
+  p
   testthat::expect_is(p, "ggplot")
 })
 
@@ -100,5 +103,31 @@ test_that("track_features.numeric fill and color new scales2", {
     scale_fill_gradientn(colors = rep("white", 2)) +
     scale_color_viridis_c(option = "magma") +
     guides(fill = "none")
+  p
   testthat::expect_is(p, "ggplot")
+})
+
+test_that("track_features.numeric discrete color", {
+  clust_dt = seqsetvis::ssvSignalClustering(seqsetvis::CTCF_in_10a_profiles_dt)
+  assign_dt = unique(clust_dt[, .(id, cluster_id)])
+  olap_gr = seqsetvis::CTCF_in_10a_overlaps_gr
+  olap_gr$cluster_id = ""
+  olap_gr[assign_dt$id]$cluster_id = assign_dt$cluster_id
+  p = track_features.numeric(olap_gr,
+                         query_gr = GRanges("chr1", IRanges(40e6, 70e6)),
+                         color_VAR = "cluster_id",
+                         fill_VAR = "cluster_id",
+                         attrib = "peaks")
+  p
+  testthat::expect_is(p, "ggplot")
+
+  grps = seqsetvis::ssvFactorizeMembTable(seqsetvis::CTCF_in_10a_overlaps_gr)
+  plot_grs = split(olap_gr, grps$group)
+  p2 = track_features.numeric(plot_grs,
+                         query_gr = GRanges("chr1", IRanges(40e6, 70e6)),
+                         color_VAR = "cluster_id",
+                         fill_VAR = "cluster_id",
+                         attrib = "peaks")
+  p2
+  testthat::expect_is(p2, "ggplot")
 })

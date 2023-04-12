@@ -70,6 +70,7 @@ track_rna.SE = function(
   for(var_name in names(args2)){
     assign(var_name, args2[[var_name]])
   }
+  strand(query_gr) = "*" #seqsetvis handles query strand in a relative fashion (appropriate for ChIP), we need absolute strand
   bw_dt.raw = fetch_fun(signal_files, query_gr,
                         win_method = "summary",  win_size = nwin,
                         summary_FUN = summary_FUN,
@@ -85,6 +86,8 @@ track_rna.SE = function(
                               summary_FUN = summary_FUN,
                               return_data.table = TRUE,
                               anchor = "left",
+                              target_strand = target_strand,
+                              flip_strand = flip_strand,
                               fragLens = NA,
                               splice_strategy = "splice_count")
     if(flip_strand){
