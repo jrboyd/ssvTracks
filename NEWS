@@ -1,17 +1,16 @@
 # 0.1.5
+* splicing is properly not counted in tracks_RNA.SE
 
+# 0.1.5
 * fix issues with strand handling in RNA seq especially with splicing
 * track_features.numeric now better handles single GRanges and attrib
 
 # 0.1.4
-
 * added splice_within_range_only to RNA tracks
 
 # 0.1.2
-
 * remove black coloring from splice arches, use same color as track
 
 # 0.1.1
-
 * added x_scale support to track_assembly
 * x_scale k and M added as valid

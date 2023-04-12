@@ -78,7 +78,8 @@ track_rna.SE = function(
                         anchor = "left",
                         target_strand = target_strand,
                         flip_strand = flip_strand,
-                        fragLens = NA)
+                        fragLens = NA,
+                        splice_strategy = "ignore")
 
   if(show_splice){
     splice_dt.raw = fetch_fun(signal_files, query_gr,
@@ -86,7 +87,7 @@ track_rna.SE = function(
                               summary_FUN = summary_FUN,
                               return_data.table = TRUE,
                               anchor = "left",
-                              target_strand = target_strand,
+                              target_strand = "both",
                               flip_strand = flip_strand,
                               fragLens = NA,
                               splice_strategy = "splice_count")
