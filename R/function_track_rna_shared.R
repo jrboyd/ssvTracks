@@ -26,6 +26,7 @@
     flip_strand = FALSE,
     return_data = FALSE,
     show_splice = TRUE,
+    show_pileup = TRUE,
     min_splice_count = 0,
     splice_within_range_only = NULL,
     ...){
@@ -63,6 +64,7 @@
     flip_strand = FALSE,
     return_data = FALSE,
     show_splice = TRUE,
+    show_pileup = TRUE,
     min_splice_count = 0,
     splice_within_range_only = NULL,
     ...){
@@ -109,6 +111,7 @@
   }
 
   if(show_splice){
+
     #ensure that is splice event in 1 sample it's plotted in all
     #avoids plotting 100 but not plotting 99
     valid_start_end = unique(splice_dt[y >= min_splice_count][, .(start, end)])
@@ -150,12 +153,26 @@
       )
     }else{
       color_VAR = ensym(color_VAR)
-      p_rna = p_rna + ggbio::geom_arch(
-        data = valid_splice_dt, aes(x = start, xend = end, height = y, color = !!color_VAR), show.legend = FALSE#,
-        # color = "black"
-      )
+      p_rna = p_rna +
+        ggbio::geom_arch(
+          data = valid_splice_dt,
+          aes(x = start, xend = end, height = y, color = !!color_VAR)
+        )
+      if(!show_pileup){
+        facet_switch = if(names_on_right){
+          NULL
+        }else{
+          "y"
+        }
+        p_rna = p_rna +
+          scale_color_manual(values = color_mapping) #+
+          # labs(y = paste0(y_label, " (", target_strand, ")")) +
+          # facet_grid(formula(paste0(facet_VAR, "~.")), switch = facet_switch) +
+          # theme_classic() +
+          # theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
+          # theme(legend.position = legend.position)
+      }
     }
-
   }
   p_rna
 }

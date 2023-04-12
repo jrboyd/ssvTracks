@@ -1,3 +1,7 @@
+# 0.1.6
+* moved color_mapping and fill_mapping to pre fetch
+* added show_pileup option to rna plots.
+
 # 0.1.5
 * splicing is properly not counted in tracks_RNA.SE
 

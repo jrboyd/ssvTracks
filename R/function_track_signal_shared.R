@@ -58,8 +58,8 @@ DEF_FILL_ = "default_fill__"
   }
   if(is.character(summary_FUN)){
     summary_FUN = switch (summary_FUN,
-                      max = function(x, w)max(x),
-                      mean = weighted.mean
+                          max = function(x, w)max(x),
+                          mean = weighted.mean
     )
   }
 
@@ -120,6 +120,40 @@ DEF_FILL_ = "default_fill__"
     target_strand = as.character(strand(query_gr))
   }
 
+  show_color = .check_show_aes(
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  if(show_color){
+    if(is.null(color_mapping)){
+      if(color_VAR == "strand"){
+        color_mapping = seqsetvis::safeBrew(c("-", "+"))
+      }else{
+        color_mapping = seqsetvis::safeBrew(signal_files[[color_VAR]])
+      }
+      if(!is.na(color_mapping["input"])){
+        color_mapping["input"] = "gray"
+      }
+    }
+  }
+
+  show_fill = .check_show_aes(
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
+  if(show_fill){
+    if(is.null(fill_mapping)){
+      if(fill_VAR == "strand"){
+        fill_mapping = seqsetvis::safeBrew(c("-", "+"))
+      }else{
+        fill_mapping = seqsetvis::safeBrew(signal_files[[fill_VAR]])
+      }
+      if(!is.na(fill_mapping["input"])){
+        fill_mapping["input"] = "gray"
+      }
+    }
+  }
+
   #update args and return
   args$flip_x = flip_x
   args$target_strand = target_strand
@@ -128,6 +162,8 @@ DEF_FILL_ = "default_fill__"
   args$summary_FUN = summary_FUN
   args$color_VAR = color_VAR
   args$fill_VAR = fill_VAR
+  args$color_mapping = color_mapping
+  args$fill_mapping = fill_mapping
   args
 }
 
@@ -159,6 +195,7 @@ DEF_FILL_ = "default_fill__"
     flip_strand = FALSE,
     return_data = FALSE,
     show_splice = FALSE,
+    show_pileup = TRUE,
     ...){
   if(!is.null(bw_dt.raw$mapped_reads)){
     bw_dt.raw[, y_raw := y]
@@ -169,16 +206,6 @@ DEF_FILL_ = "default_fill__"
       splice_dt.raw[, y := y_raw / mapped_reads * 1e6]
     }
   }
-
-  #### show color and fill  ####
-  show_color = .check_show_aes(
-    ATTRIB_VAR = color_VAR,
-    DEFAULT_VALUE = DEF_COLOR_
-  )
-  show_fill = .check_show_aes(
-    ATTRIB_VAR = fill_VAR,
-    DEFAULT_VALUE = DEF_FILL_
-  )
 
   ####  grouping ####
   group_vars = .get_group_vars(
@@ -200,8 +227,6 @@ DEF_FILL_ = "default_fill__"
     #does x need to be end(query_gr) - width(query_gr) if strand is negative?
   }
 
-
-
   bw_dt[y > ceiling_value, y := ceiling_value]
   bw_dt[y < floor_value, y := floor_value]
 
@@ -211,13 +236,22 @@ DEF_FILL_ = "default_fill__"
 
   p_rna = ggplot(bw_dt)
 
+  #### show color and fill  ####
+  show_color = .check_show_aes(
+    ATTRIB_VAR = color_VAR,
+    DEFAULT_VALUE = DEF_COLOR_
+  )
+  show_fill = .check_show_aes(
+    ATTRIB_VAR = fill_VAR,
+    DEFAULT_VALUE = DEF_FILL_
+  )
   if(show_color){
-    if(is.null(color_mapping)){
-      color_mapping = seqsetvis::safeBrew(bw_dt[[color_VAR]])
-      if(!is.na(color_mapping["input"])){
-        color_mapping["input"] = "gray"
-      }
-    }
+    # if(is.null(color_mapping)){
+    #   color_mapping = seqsetvis::safeBrew(bw_dt[[color_VAR]])
+    #   if(!is.na(color_mapping["input"])){
+    #     color_mapping["input"] = "gray"
+    #   }
+    # }
     if(!all(bw_dt[[color_VAR]] %in% names(color_mapping))){
       if(length(color_mapping) == 1){
         color_mapping = rep(color_mapping, length(unique(bw_dt[[color_VAR]])))
@@ -233,17 +267,19 @@ DEF_FILL_ = "default_fill__"
     }
 
     path_show.legend = length(unique(color_mapping)) > 1
-    p_rna = p_rna +
-      geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha, show.legend = path_show.legend) +
-      scale_color_manual(values = color_mapping)
+    if(show_pileup){
+      p_rna = p_rna +
+        geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha, show.legend = path_show.legend) +
+        scale_color_manual(values = color_mapping)
+    }
   }
   if(show_fill){
-    if(is.null(fill_mapping)){
-      fill_mapping = seqsetvis::safeBrew(bw_dt[[fill_VAR]])
-      if(!is.na(fill_mapping["input"])){
-        fill_mapping["input"] = "gray"
-      }
-    }
+    # if(is.null(fill_mapping)){
+    #   fill_mapping = seqsetvis::safeBrew(bw_dt[[fill_VAR]])
+    #   if(!is.na(fill_mapping["input"])){
+    #     fill_mapping["input"] = "gray"
+    #   }
+    # }
     if(!all(bw_dt[[fill_VAR]] %in% names(fill_mapping))){
       if(length(fill_mapping) == 1){
         fill_mapping = rep(fill_mapping, length(unique(bw_dt[[fill_VAR]])))
@@ -259,9 +295,11 @@ DEF_FILL_ = "default_fill__"
     }
 
     ribbon_show.legend = length(unique(fill_mapping)) > 1
-    p_rna = p_rna +
-      geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha, show.legend = ribbon_show.legend) +
-      scale_fill_manual(values = fill_mapping)
+    if(show_pileup){
+      p_rna = p_rna +
+        geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha, show.legend = ribbon_show.legend) +
+        scale_fill_manual(values = fill_mapping)
+    }
   }
 
   facet_switch = if(names_on_right){
