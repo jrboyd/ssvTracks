@@ -70,7 +70,7 @@ track_rna.PE = function(
     min_splice_count = 0,
     splice_within_range_only = NULL,
     target_strand = NULL,
-    flip_strand = FALSE,
+    flip_strand = TRUE,
     return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))

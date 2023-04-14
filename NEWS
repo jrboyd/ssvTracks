@@ -1,3 +1,6 @@
+# 0.1.7
+* flip_strand is now TRUE for RNA tracks
+
 # 0.1.6
 * moved color_mapping and fill_mapping to pre fetch
 * added show_pileup option to rna plots.

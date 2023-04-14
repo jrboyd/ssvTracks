@@ -58,6 +58,7 @@ track_rna.SE = function(
     legend.position = "right",
     names_on_right = TRUE,
     show_splice = TRUE,
+    show_pileup = TRUE,
     min_splice_count = 0,
     splice_within_range_only = NULL,
     target_strand = NULL,
