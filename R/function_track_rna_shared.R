@@ -165,14 +165,11 @@
           "y"
         }
         p_rna = p_rna +
-          scale_color_manual(values = color_mapping) #+
-          # labs(y = paste0(y_label, " (", target_strand, ")")) +
-          # facet_grid(formula(paste0(facet_VAR, "~.")), switch = facet_switch) +
-          # theme_classic() +
-          # theme(strip.background = element_blank(), strip.text.y = element_text(angle = 0)) +
-          # theme(legend.position = legend.position)
+          scale_color_manual(values = color_mapping)
       }
     }
   }
+  p_rna = p_rna +
+    labs(y = paste0(y_label, " (", target_strand, ")"))
   p_rna
 }
