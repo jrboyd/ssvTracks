@@ -13,3 +13,4 @@ Imports:
   cowplot,
   seqsetvis
 RoxygenNote: 7.2.3
+biocViews: Software, ChIPSeq, MultipleComparison, Sequencing, Visualization
