@@ -48,6 +48,8 @@
 track_rna.PE = function(
     signal_files,
     query_gr,
+    fetch_fun = ssvFetchBamPE.RNA,
+    fetch_fun_splice = ssvFetchBamPE.RNA,
     summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
@@ -71,6 +73,7 @@ track_rna.PE = function(
     splice_within_range_only = NULL,
     target_strand = NULL,
     flip_strand = TRUE,
+    flip_strand_splice = flip_strand,
     return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
@@ -80,7 +83,7 @@ track_rna.PE = function(
     assign(var_name, args2[[var_name]])
   }
 
-  bw_dt.raw = ssvFetchBamPE.RNA(
+  bw_dt.raw = fetch_fun(
     signal_files, query_gr,
     win_method = "summary",
     win_size = nwin,
@@ -88,22 +91,28 @@ track_rna.PE = function(
     target_strand = target_strand,
     flip_strand = flip_strand
   )
-  args2$bw_dt.raw = bw_dt.raw
-
   if(show_splice){
-    splice_dt.raw = ssvFetchBamPE.RNA_splice(
+    splice_dt.raw = fetch_fun_splice(
       signal_files,
       query_gr,
       return_data.table = TRUE,
       target_strand = target_strand,
-      flip_strand = flip_strand
+      flip_strand = flip_strand_splice,
+      splice_strategy = "splice_count"
     )
+    # if(facet_VAR == "strand" | color_VAR == "strand" | fill_VAR == "strand"){
+    #   cn = setdiff(colnames(splice_dt.raw), c("read", "N"))
+    # }else{
+    #   cn = setdiff(colnames(splice_dt.raw), c("read", "N", "strand"))
+    # }
+    # splice_dt.raw = splice_dt.raw[, .(N = sum(N)), c(cn)]
     setnames(splice_dt.raw, "N", "y")
-    args2$splice_dt.raw = splice_dt.raw
   }else{
-    args2["splice_dt.raw"] = list(NULL)
+    splice_dt.raw = NULL
   }
 
+  args2$bw_dt.raw = bw_dt.raw
+  args2$splice_dt.raw = splice_dt.raw
   do.call(.track_rna_common_after_fetch, args2)
 }
 

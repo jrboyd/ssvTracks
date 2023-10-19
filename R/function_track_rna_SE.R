@@ -39,6 +39,7 @@ track_rna.SE = function(
     signal_files,
     query_gr,
     fetch_fun = seqsetvis::ssvFetchBam,
+    fetch_fun_splice = fetch_fun,
     summary_FUN = c("mean", "max")[2],
     flip_x = NULL,
     nwin = 3000,
@@ -63,6 +64,7 @@ track_rna.SE = function(
     splice_within_range_only = NULL,
     target_strand = NULL,
     flip_strand = TRUE,
+    flip_strand_splice = flip_strand,
     return_data = FALSE,
     ...){
   env = as.list(sys.frame(sys.nframe()))
@@ -83,23 +85,15 @@ track_rna.SE = function(
                         splice_strategy = "ignore")
 
   if(show_splice){
-    splice_dt.raw = fetch_fun(signal_files, query_gr,
+    splice_dt.raw = fetch_fun_splice(signal_files, query_gr,
                               win_method = "summary",  win_size = nwin,
                               summary_FUN = summary_FUN,
                               return_data.table = TRUE,
                               anchor = "left",
-                              target_strand = "both",
-                              flip_strand = flip_strand,
+                              target_strand = target_strand,
+                              flip_strand = flip_strand_splice,
                               fragLens = NA,
                               splice_strategy = "splice_count")
-    if(flip_strand){
-      splice_dt.raw[strand == "-", strand := "tmp"]
-      splice_dt.raw[strand == "+", strand := "-"]
-      splice_dt.raw[strand == "tmp", strand := "+"]
-    }
-    if(target_strand %in% c("+", "-")){
-      splice_dt.raw = splice_dt.raw[strand == target_strand]
-    }
     setnames(splice_dt.raw, "N", "y")
   }else{
     splice_dt.raw = NULL

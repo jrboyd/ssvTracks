@@ -1,4 +1,11 @@
 # 0.1.7
+
+track_rna_SE and PE now use fetch_fun and fetch_fun_splice speparately
+" flip_strand and flip_strand_splice
+
+ssvFetchBamPE.RNA_splice no longer necessary
+
+# 0.1.7
 * flip_strand is now TRUE for RNA tracks
 
 # 0.1.6
