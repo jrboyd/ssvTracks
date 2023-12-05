@@ -111,7 +111,6 @@
   }
 
   if(show_splice){
-
     #ensure that is splice event in 1 sample it's plotted in all
     #avoids plotting 100 but not plotting 99
     valid_start_end = unique(splice_dt[y >= min_splice_count][, .(start, end)])

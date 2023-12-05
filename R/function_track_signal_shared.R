@@ -187,8 +187,10 @@ DEF_FILL_ = "default_fill__"
     color_VAR = NULL,
     color_mapping = NULL,
     fill_VAR = "sample",
-    facet_VAR = "sample",
     fill_mapping = NULL,
+    color_over_fill = TRUE,
+    facet_VAR = "sample",
+
     legend.position = "right",
     names_on_right = TRUE,
     target_strand = NULL,
@@ -215,9 +217,10 @@ DEF_FILL_ = "default_fill__"
   )
 
   bw_dt = bw_dt.raw[, list(y = mean(y)), c(unique(c(color_VAR, fill_VAR, facet_VAR, "x", "start", "end")))]
-  bw_dt$sample = apply(bw_dt[, group_vars, with = FALSE], 1, paste, collapse = " ")
+  # bw_dt$sample = apply(bw_dt[, group_vars, with = FALSE], 1, paste, collapse = " ")
   bw_dt = bw_dt[order(get(color_VAR))][order(get(fill_VAR))][order(get(facet_VAR))]
-  bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
+  # bw_dt$sample = factor(bw_dt$sample, levels = unique(bw_dt$sample))
+  bw_dt[[facet_VAR]] = factor(bw_dt[[facet_VAR]], levels = unique(bw_dt[[facet_VAR]]))
 
   bw_dt[, x := (end + start)/2]
   if(nspline > 1){
@@ -245,60 +248,60 @@ DEF_FILL_ = "default_fill__"
     ATTRIB_VAR = fill_VAR,
     DEFAULT_VALUE = DEF_FILL_
   )
+  todo = character()
   if(show_color){
-    # if(is.null(color_mapping)){
-    #   color_mapping = seqsetvis::safeBrew(bw_dt[[color_VAR]])
-    #   if(!is.na(color_mapping["input"])){
-    #     color_mapping["input"] = "gray"
-    #   }
-    # }
-    if(!all(bw_dt[[color_VAR]] %in% names(color_mapping))){
-      if(length(color_mapping) == 1){
-        color_mapping = rep(color_mapping, length(unique(bw_dt[[color_VAR]])))
-        if(is.factor(bw_dt[[color_VAR]])){
-          names(color_mapping) = levels(bw_dt[[color_VAR]])
-        }else{
-          names(color_mapping) = unique(bw_dt[[color_VAR]])
-        }
-      }else{
-        stop("Missing values from color_mapping for color_VAR \"", color_VAR, "\":\n",
-             paste(setdiff(unique(bw_dt[[color_VAR]]), names(color_mapping)), collapse = ", "))
-      }
-    }
-
-    path_show.legend = length(unique(color_mapping)) > 1
-    if(show_pileup){
-      p_rna = p_rna +
-        geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha, show.legend = path_show.legend) +
-        scale_color_manual(values = color_mapping)
-    }
+    todo = c(todo, "show_color")
   }
   if(show_fill){
-    # if(is.null(fill_mapping)){
-    #   fill_mapping = seqsetvis::safeBrew(bw_dt[[fill_VAR]])
-    #   if(!is.na(fill_mapping["input"])){
-    #     fill_mapping["input"] = "gray"
-    #   }
-    # }
-    if(!all(bw_dt[[fill_VAR]] %in% names(fill_mapping))){
-      if(length(fill_mapping) == 1){
-        fill_mapping = rep(fill_mapping, length(unique(bw_dt[[fill_VAR]])))
-        if(is.factor(bw_dt[[fill_VAR]])){
-          names(fill_mapping) = levels(bw_dt[[fill_VAR]])
+    todo = c(todo, "show_fill")
+  }
+  if(color_over_fill){
+    todo = rev(todo)
+  }
+  for(td in todo){
+    if(td == "show_color"){
+      if(!all(bw_dt[[color_VAR]] %in% names(color_mapping))){
+        if(length(color_mapping) == 1){
+          color_mapping = rep(color_mapping, length(unique(bw_dt[[color_VAR]])))
+          if(is.factor(bw_dt[[color_VAR]])){
+            names(color_mapping) = levels(bw_dt[[color_VAR]])
+          }else{
+            names(color_mapping) = unique(bw_dt[[color_VAR]])
+          }
         }else{
-          names(fill_mapping) = unique(bw_dt[[fill_VAR]])
+          stop("Missing values from color_mapping for color_VAR \"", color_VAR, "\":\n",
+               paste(setdiff(unique(bw_dt[[color_VAR]]), names(color_mapping)), collapse = ", "))
         }
-      }else{
-        stop("Missing values from fill_mapping for fill_VAR \"", fill_VAR, "\":\n",
-             paste(setdiff(unique(bw_dt[[fill_VAR]]), names(fill_mapping)), collapse = ", "))
+      }
+
+      path_show.legend = length(unique(color_mapping)) > 1
+      if(show_pileup){
+        p_rna = p_rna +
+          geom_path(aes_string(x = "x", y = "y", color = color_VAR), alpha = color_alpha, show.legend = path_show.legend) +
+          scale_color_manual(values = color_mapping)
       }
     }
+    if(td == "show_fill"){
+      if(!all(bw_dt[[fill_VAR]] %in% names(fill_mapping))){
+        if(length(fill_mapping) == 1){
+          fill_mapping = rep(fill_mapping, length(unique(bw_dt[[fill_VAR]])))
+          if(is.factor(bw_dt[[fill_VAR]])){
+            names(fill_mapping) = levels(bw_dt[[fill_VAR]])
+          }else{
+            names(fill_mapping) = unique(bw_dt[[fill_VAR]])
+          }
+        }else{
+          stop("Missing values from fill_mapping for fill_VAR \"", fill_VAR, "\":\n",
+               paste(setdiff(unique(bw_dt[[fill_VAR]]), names(fill_mapping)), collapse = ", "))
+        }
+      }
 
-    ribbon_show.legend = length(unique(fill_mapping)) > 1
-    if(show_pileup){
-      p_rna = p_rna +
-        geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha, show.legend = ribbon_show.legend) +
-        scale_fill_manual(values = fill_mapping)
+      ribbon_show.legend = length(unique(fill_mapping)) > 1
+      if(show_pileup){
+        p_rna = p_rna +
+          geom_ribbon(aes_string(x = "x", ymin = 0, ymax = "y", fill = fill_VAR), color = fill_outline_color, alpha = fill_alpha, show.legend = ribbon_show.legend) +
+          scale_fill_manual(values = fill_mapping)
+      }
     }
   }
 

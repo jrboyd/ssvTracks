@@ -7,6 +7,8 @@
 track_rna.PE(
   signal_files,
   query_gr,
+  fetch_fun = ssvFetchBamPE.RNA,
+  fetch_fun_splice = ssvFetchBamPE.RNA,
   summary_FUN = c("mean", "max")[2],
   flip_x = NULL,
   nwin = 3000,
@@ -22,6 +24,7 @@ track_rna.PE(
   color_mapping = NULL,
   fill_VAR = "sample",
   fill_mapping = NULL,
+  color_over_fill = TRUE,
   facet_VAR = "sample",
   legend.position = "right",
   names_on_right = TRUE,
@@ -29,13 +32,16 @@ track_rna.PE(
   min_splice_count = 0,
   splice_within_range_only = NULL,
   target_strand = NULL,
-  flip_strand = FALSE,
+  flip_strand = TRUE,
+  flip_strand_splice = flip_strand,
   return_data = FALSE,
   ...
 )
 }
 \arguments{
 \item{signal_files}{Character or data.frame. Paths to files. Either supplied as a simple character vector (names are use for plot labels if set) or as a data.frame}
+
+\item{fetch_fun}{An ssvFetc* function from seqsetvis. ssvFetchBam, ssvFetchBamPE or ssvFetchBigwig are likely choices.}
 
 \item{summary_FUN}{Either a function or character "mean" or "max".  If a custom function it must follow the form of weighted.mean() and accept 2 arguments, values and weights.}
 
@@ -66,8 +72,6 @@ track_rna.PE(
 \item{names_on_right}{logical. If TRUE (default) facet/row names appear on the right. If FALSE facet/row names appear on the left.}
 
 \item{...}{Currently not used.}
-
-\item{fetch_fun}{An ssvFetc* function from seqsetvis. ssvFetchBam, ssvFetchBamPE or ssvFetchBigwig are likely choices.}
 }
 \description{
 track_rna.PE

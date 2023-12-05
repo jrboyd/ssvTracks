@@ -78,6 +78,7 @@ track_chip = function(signal_files,
                       color_mapping = NULL,
                       fill_VAR = "sample",
                       fill_mapping = NULL,
+                      color_over_fill = TRUE,
                       facet_VAR = "sample",
                       legend.position = "right",
                       names_on_right = TRUE,
@@ -99,8 +100,7 @@ track_chip = function(signal_files,
                         fragLens = NA
   )
 
-  args2$bw_dt.raw = bw_dt.raw
-
+  args2["bw_dt.raw"] = list(bw_dt.raw)
   do.call(.track_all_common_after_fetch, args2)
 }
 

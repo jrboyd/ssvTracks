@@ -25,3 +25,16 @@ track_features.numeric(
 \description{
 track_features.numeric
 }
+\examples{
+
+clust_dt = seqsetvis::ssvSignalClustering(seqsetvis::CTCF_in_10a_profiles_dt)
+assign_dt = unique(clust_dt[, .(id, cluster_id)])
+olap_gr = seqsetvis::CTCF_in_10a_overlaps_gr
+olap_gr$cluster_id = ""
+olap_gr[assign_dt$id]$cluster_id = assign_dt$cluster_id
+track_features.numeric(olap_gr,
+                       query_gr = GRanges("chr1", IRanges(40e6, 70e6)),
+                       color_VAR = "cluster_id",
+                       fill_VAR = "cluster_id",
+                       attrib = "peaks")
+}

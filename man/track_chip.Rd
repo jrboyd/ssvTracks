@@ -23,6 +23,7 @@ track_chip(
   color_mapping = NULL,
   fill_VAR = "sample",
   fill_mapping = NULL,
+  color_over_fill = TRUE,
   facet_VAR = "sample",
   legend.position = "right",
   names_on_right = TRUE,

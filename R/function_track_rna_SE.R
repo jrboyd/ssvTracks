@@ -55,6 +55,7 @@ track_rna.SE = function(
     color_mapping = NULL,
     fill_VAR = "sample",
     fill_mapping = NULL,
+    color_over_fill = TRUE,
     facet_VAR = "sample",
     legend.position = "right",
     names_on_right = TRUE,
@@ -99,7 +100,7 @@ track_rna.SE = function(
     splice_dt.raw = NULL
   }
 
-  args2$bw_dt.raw = bw_dt.raw
-  args2$splice_dt.raw = splice_dt.raw
+  args2["bw_dt.raw"] = list(bw_dt.raw)
+  args2["splice_dt.raw"] = list(splice_dt.raw)
   do.call(.track_rna_common_after_fetch, args2)
 }

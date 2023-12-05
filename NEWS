@@ -1,4 +1,9 @@
-# 0.1.7
+# 0.1.9
+
+* added color_over_fill to chip and rna tracks
+* allow no splicing in RNA
+
+# 0.1.8
 
 track_rna_SE and PE now use fetch_fun and fetch_fun_splice speparately
 " flip_strand and flip_strand_splice
