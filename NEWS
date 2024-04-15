@@ -2,6 +2,7 @@
 
 * added color_over_fill to chip and rna tracks
 * allow no splicing in RNA
+* y_cap_value now used if avaialble in signal tracks
 
 # 0.1.8
 

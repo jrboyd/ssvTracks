@@ -199,7 +199,18 @@ DEF_FILL_ = "default_fill__"
     show_splice = FALSE,
     show_pileup = TRUE,
     ...){
-  if(!is.null(bw_dt.raw$mapped_reads)){
+  if(!is.null(bw_dt.raw$y_cap_value)){
+    bw_dt.raw[, y_raw := y]
+    bw_dt.raw[, y := y_raw / y_cap_value]
+    if(y_label == "signal") y_label = "normalized signal"
+    if(show_splice){
+      splice_dt.raw[, y_raw := y]
+      splice_dt.raw[, y := y_raw / y_cap_value]
+    }
+    if(!is.null(bw_dt.raw$mapped_reads)){
+      warning("Using y_cap_value normalization and ignoring mapped_reads")
+    }
+  }else if(!is.null(bw_dt.raw$mapped_reads)){
     bw_dt.raw[, y_raw := y]
     bw_dt.raw[, y := y_raw / mapped_reads * 1e6]
     if(y_label == "signal") y_label = "RPM"
