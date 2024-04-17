@@ -96,6 +96,16 @@ DEF_FILL_ = "default_fill__"
       )
     }
   }
+  #### sample is a special attribute ####
+  if(is.null(signal_files$file)){
+    signal_files$file = signal_files[[1]]
+    if(!all(file.exists(signal_files$file))){
+      stop("Not all files exist:\n", paste(signal_files$file[!file.exists(signal_files$file)], collapse = "\n"))
+    }
+  }
+  if(is.null(signal_files$sample)){
+    signal_files$sample = basename(signal_files$file)
+  }
 
   #### check color and fill  ####
   color_VAR = .check_attribute(
