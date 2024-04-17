@@ -28,6 +28,7 @@ DEF_FILL_ = "default_fill__"
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
+    nMovingAverage = 1,
     fill_outline_color = NA,
     fill_alpha = 1,
     color_alpha = 1,
@@ -177,6 +178,7 @@ DEF_FILL_ = "default_fill__"
     flip_x = NULL,
     nwin = 3000,
     nspline = 1,
+    nMovingAverage = 1,
     fill_outline_color = NA,
     fill_alpha = 1,
     color_alpha = 1,
@@ -234,8 +236,15 @@ DEF_FILL_ = "default_fill__"
   bw_dt[[facet_VAR]] = factor(bw_dt[[facet_VAR]], levels = unique(bw_dt[[facet_VAR]]))
 
   bw_dt[, x := (end + start)/2]
+  if(nMovingAverage > 1){
+    bw_dt = seqsetvis::applyMovingAverage(
+      bw_dt, n = nMovingAverage, by_ = unique(c(color_VAR, fill_VAR, facet_VAR))
+    )
+  }
   if(nspline > 1){
-    bw_dt = seqsetvis::applySpline(bw_dt, n = nspline, by_ = unique(c(color_VAR, fill_VAR, facet_VAR)))
+    bw_dt = seqsetvis::applySpline(
+      bw_dt, n = nspline, by_ = unique(c(color_VAR, fill_VAR, facet_VAR))
+    )
     #bw_dt[, x := (end + start)/2]
     # set(bw_dt, j = "x", value = start(query_gr) + width(query_gr)*bw_dt$x)
     #does x need to be end(query_gr) - width(query_gr) if strand is negative?

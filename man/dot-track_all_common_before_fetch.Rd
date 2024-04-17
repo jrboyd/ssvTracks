@@ -15,6 +15,7 @@
   flip_x = NULL,
   nwin = 3000,
   nspline = 1,
+  nMovingAverage = 1,
   fill_outline_color = NA,
   fill_alpha = 1,
   color_alpha = 1,
